@@ -393,14 +393,17 @@ function renderTab(id){
 
 // ---------- DOWNLOAD (dijalankan oleh a-Shell di iPhone, dipanggil langsung dari SatSet)
 const YTCMD = "python3 -m pip install -U yt-dlp";
-let dlMode = "mp4";
+let dlMode = "mp4", dlTo = store.get("dlto", "galeri");
+const SC_NAME = "SatSet Simpan";
 function dlCommand(url){
-  return dlMode === "mp3"
-    ? `yt-dlp -P ~/Documents -x --audio-format mp3 ${url}`
+  if(dlMode === "mp3") return `yt-dlp -P ~/Documents -x --audio-format mp3 ${url}`;
+  return dlTo === "galeri"
+    ? `yt-dlp -f b --force-overwrites -P ~/Documents -o satset.mp4 ${url}`
     : `yt-dlp -P ~/Documents -f b ${url}`;
 }
 function downloaderHTML(){
   return `<div style="margin-top:12px">${segHTML("dlmode", [["mp4","Video MP4"],["mp3","Audio MP3"]], dlMode).replace('class="segwrap"', 'class=""')}</div>
+  <div id="tobox"><div class="hdr">Simpan ke</div><div class="group">${segHTML("dlto", [["galeri","Galeri (otomatis)"],["file","App File"]], dlTo)}</div></div>
   <div class="hdr">Link video</div>
   <div class="group"><div class="field">
     <input type="url" id="url" placeholder="Tempel link TikTok, YouTube, IG, FB…" autocomplete="off" autocapitalize="off" inputmode="url" aria-label="Link video">
@@ -409,13 +412,22 @@ function downloaderHTML(){
   <div class="toast" id="msg"></div>
   <div id="dlbox" class="hide"><div class="hdr">Perintah yang dijalankan</div>
     <div class="group"><div class="field"><code id="dlcmd" style="flex:1;font-size:13px;overflow-wrap:anywhere"></code><button class="pill" id="dlcopy" type="button">Salin</button></div></div>
-    <p class="foot">Kalau a-Shell terbuka tapi tidak mulai download, tempel perintah ini di a-Shell lalu Enter. Hasilnya ada di app <b>File → Di iPhone Saya → a-Shell</b>, lalu Bagikan → <b>Simpan Video</b>.</p></div>
+    <p class="foot">Kalau ada yang macet, tempel perintah ini di a-Shell lalu Enter. Hasilnya ada di app <b>File → Di iPhone Saya → a-Shell</b>, lalu Bagikan → <b>Simpan Video</b>.</p></div>
   <div class="hdr">Persiapan (sekali saja)</div>
   <div class="group">
     <div class="cell ic"><div class="icon" style="background:#5856d6">1</div><div class="grow">Install <b>a-Shell</b> (gratis)<small>Aplikasi terminal di App Store</small></div></div>
     <div class="cell ic"><div class="icon" style="background:#007aff">2</div><div class="grow">Di a-Shell, jalankan perintah pasang yt-dlp<small>Ulangi sebulan sekali agar tetap bisa download</small></div></div>
     <div class="cell ic"><div class="icon" style="background:#ff9500">3</div><div class="grow">Matikan <b>Tanda Baca Cerdas</b><small>Pengaturan → Umum → Papan Ketik</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#34c759">4</div><div class="grow">Buat pintasan <b>SatSet Simpan</b><small>Supaya video langsung masuk Galeri (lihat di bawah)</small></div></div>
   </div>
+  <details class="group" style="margin-top:12px;padding:12px 16px"><summary style="cursor:pointer;color:var(--blue);font-weight:600">Cara membuat pintasan "SatSet Simpan"</summary>
+    <ol style="margin:10px 0 0 18px;font-size:15px;line-height:1.5;color:var(--ink)">
+      <li>Buka app <b>Pintasan</b> → <b>+</b> → beri nama persis <b>SatSet Simpan</b>.</li>
+      <li>Tambah Tindakan → cari <b>a-Shell</b> → pilih <b>Execute Command</b>. Di kolom perintah, ketuk lalu pilih variabel <b>Input Pintasan</b>. Kalau ada pilihan <b>Open a-Shell / Keep going</b>, nyalakan.</li>
+      <li>Tambah Tindakan → a-Shell → <b>Get File</b> → isi <b>satset.mp4</b></li>
+      <li>Tambah Tindakan → <b>Simpan ke Album Foto</b> → Terbaru. Ketuk Selesai.</li>
+    </ol>
+    <p class="foot" style="margin:8px 0 0">Selesai. Pilihan "Galeri (otomatis)" di atas akan menjalankan pintasan ini.</p></details>
   <div class="group" style="margin-top:12px"><div class="field"><code style="flex:1;font-size:14px;overflow-wrap:anywhere">${YTCMD}</code><button class="pill" id="cpcmd" type="button">Salin</button></div></div>
   <a class="btn sec" href="https://apps.apple.com/app/id1473805438" target="_blank" rel="noopener">Buka a-Shell di App Store</a>
   <p class="foot">Download berjalan di iPhone-mu sendiri lewat a-Shell, tanpa server. Gunakan hanya untuk video milikmu atau yang sudah kamu dapat izinnya.</p>`;
@@ -424,8 +436,9 @@ function howHTML(){ return ""; }
 function bindDownloader(){
   const root = $("#main"), m = $("#msg");
   const label = () => $("#dlgo").textContent = dlMode === "mp3" ? "Download MP3" : "Download MP4";
-  bindSegs(root, () => { dlMode = segVal(root, "dlmode") || "mp4"; label(); });
-  label();
+  const sync = () => { $("#tobox").classList.toggle("hide", dlMode === "mp3"); label(); };
+  bindSegs(root, () => { dlMode = segVal(root, "dlmode") || "mp4"; dlTo = segVal(root, "dlto") || "galeri"; store.set("dlto", dlTo); sync(); });
+  sync();
   $("#cpcmd").onclick = e => copyText(YTCMD, e.target);
   $("#paste").onclick = async () => {
     try { $("#url").value = (await navigator.clipboard.readText()).trim(); }
@@ -438,6 +451,12 @@ function bindDownloader(){
     const url = found[0].replace(/[),.]+$/, "");
     const cmd = dlCommand(/[&?;|$`]/.test(url) ? `'${url}'` : url);
     $("#dlcmd").textContent = cmd; $("#dlbox").classList.remove("hide");
+    if(dlMode === "mp4" && dlTo === "galeri"){
+      toast(m, "info", "Menjalankan pintasan SatSet Simpan… video akan masuk ke Galeri.");
+      location.href = "shortcuts://run-shortcut?name=" + encodeURIComponent(SC_NAME) + "&input=text&text=" + encodeURIComponent(cmd);
+      setTimeout(() => toast(m, "ok", "Kalau muncul \"pintasan tidak ditemukan\", buat dulu pintasan SatSet Simpan (langkah 4 di bawah)."), 2500);
+      return;
+    }
     toast(m, "info", "Membuka a-Shell… download berjalan di sana.");
     location.href = "ashell:" + encodeURIComponent(cmd);
     setTimeout(() => toast(m, "ok", "Kalau a-Shell belum terpasang, install dulu lewat tombol di bawah."), 2500);
