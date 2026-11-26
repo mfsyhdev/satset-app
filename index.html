@@ -1,0 +1,1442 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SatSet</title>
+<meta name="description" content="SatSet — semua urusan file, sat-set. Download video MP4/MP3 tanpa watermark, kompres & ubah format foto, perbesar resolusi, konversi Word/PDF, gabung & kompres PDF, dan alat kantor/sekolah. Gratis.">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-title" content="SatSet">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='23' fill='%23007aff'/><path d='M74 16H38L24 52h30L26 84h36l14-34H46z' fill='white'/></svg>">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
+<style>
+/*
+VOICE: tenang dan rapi seperti aplikasi bawaan iPhone
+IDEA: app Pengaturan iOS — daftar berkelompok, tab bar bawah, halaman dorong dengan tombol kembali
+PICTURE: alatnya sendiri: kolom link/file, pilihan, hasil dengan pratinjau
+COLOUR and TYPE: abu sistem #f2f2f7/hitam, kartu putih/#1c1c1e, aksen biru iOS, ikon berwarna; SF Pro (system-ui)
+LAYOUT: satu kolom 600px, judul besar, grup inset, tab bar tetap di bawah
+*/
+:root{color-scheme:light dark;
+  --bg:light-dark(#f2f2f7,#000);--card:light-dark(#fff,#1c1c1e);--card2:light-dark(#f2f2f7,#2c2c2e);
+  --ink:light-dark(#000,#fff);--sub:light-dark(#8a8a8e,#8d8d93);--sep:light-dark(#c6c6c8,#38383a);
+  --blue:light-dark(#007aff,#0a84ff);--red:light-dark(#ff3b30,#ff453a);--green:light-dark(#34c759,#30d158);
+  --fill:light-dark(#7676801f,#7676803d);--bar:light-dark(#f9f9f9d9,#1d1d1fd9);--segon:light-dark(#fff,#636366)}
+:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
+*{box-sizing:border-box;min-width:0;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
+  overflow-x:clip;-webkit-font-smoothing:antialiased;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
+button,input,select,textarea{font:inherit;color:inherit}
+.nav{position:sticky;top:0;z-index:5;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  padding:calc(env(safe-area-inset-top) + 8px) 8px 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:44px;border-bottom:.5px solid transparent}
+.nav.line{border-bottom-color:var(--sep)}
+.nav .t{font-weight:600;font-size:17px;opacity:0;transition:opacity .2s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
+.nav.line .t{opacity:1}
+.back{justify-self:start;border:0;background:none;color:var(--blue);font-size:17px;display:flex;align-items:center;gap:2px;cursor:pointer;padding:6px 8px;min-height:44px}
+.back svg{width:13px;height:21px}
+main{max-width:600px;margin:0 auto;padding:0 16px 32px}
+h1{font-size:34px;line-height:1.1;font-weight:700;margin:2px 4px 6px;display:flex;align-items:center;gap:10px}
+h1 .logo{width:36px;height:36px;flex:none}
+.lead{color:var(--sub);font-size:15px;margin:0 4px 6px}
+
+.hdr{font-size:13px;color:var(--sub);text-transform:uppercase;margin:24px 16px 7px}
+.foot{font-size:13px;color:var(--sub);margin:7px 16px 0;line-height:1.4}
+.group{background:var(--card);border-radius:10px;overflow:hidden}
+.cell{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:44px;position:relative;width:100%;border:0;background:none;text-align:left}
+.cell+.cell::before{content:"";position:absolute;top:0;left:16px;right:0;border-top:.5px solid var(--sep)}
+.cell.ic+.cell.ic::before{left:58px}
+button.cell,a.cell{cursor:pointer;color:inherit;text-decoration:none}button.cell:active{background:var(--card2)}
+.grow{flex:1}.cell .val{color:var(--sub);font-size:15px;white-space:nowrap}
+.cell small{display:block;color:var(--sub);font-size:13px;margin-top:1px}
+.chev{width:8px;height:14px;color:#c4c4c7;flex:none}
+.chk{color:var(--blue);font-weight:600;visibility:hidden}.sel .chk{visibility:visible}
+.icon{width:30px;height:30px;border-radius:7px;display:grid;place-items:center;flex:none;color:#fff}
+.icon svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+.field{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 16px;min-height:44px}
+.field input,.field select{flex:1;border:0;background:none;outline:none;font-size:17px;padding:8px 0}
+.field input::placeholder,textarea::placeholder{color:var(--sub)}
+.field label{color:var(--ink);white-space:nowrap}
+textarea{width:100%;border:0;background:none;outline:none;font-size:17px;padding:12px 16px;min-height:160px;resize:vertical;display:block}
+.pill{border:0;background:var(--fill);color:var(--blue);font-weight:600;font-size:15px;border-radius:99px;padding:7px 14px;cursor:pointer;min-height:34px;white-space:nowrap}
+.btn{display:block;width:100%;border:0;border-radius:12px;background:var(--blue);color:#fff;font-weight:600;font-size:17px;padding:15px;margin-top:16px;cursor:pointer;text-align:center;text-decoration:none}
+.btn:active{opacity:.75}.btn:disabled{opacity:.4;cursor:default}
+.btn.sec{background:var(--card);color:var(--blue)}
+.mini{border:0;background:none;color:var(--blue);font-size:15px;cursor:pointer;padding:6px;min-width:32px;min-height:32px}
+.mini.red{color:var(--red)}
+:focus-visible{outline:3px solid color-mix(in srgb,var(--blue) 55%,transparent);outline-offset:2px}
+
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);background:var(--fill);border-radius:9px;padding:2px;gap:2px}
+.seg button{border:0;background:none;padding:6px 4px;font-size:13px;font-weight:500;border-radius:7px;cursor:pointer;min-height:32px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.seg button.on{background:var(--segon);font-weight:600;box-shadow:0 3px 8px #0000001f,0 3px 1px #0000000a}
+.segwrap{padding:8px 12px}
+.range{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:44px}
+.range input{flex:1;accent-color:var(--blue)}
+.range output{min-width:52px;text-align:right;color:var(--sub);font-variant-numeric:tabular-nums}
+
+.plats{display:flex;flex-wrap:wrap;gap:6px;margin:12px 4px 0}
+.plats span{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--card);color:var(--sub);transition:.2s}
+.plats span.on{background:var(--blue);color:#fff}
+.prev{display:flex;gap:12px;align-items:center;padding:12px 16px}
+.thumb{width:96px;aspect-ratio:16/10;border-radius:8px;background:var(--card2) center/cover;flex:none}
+.prev h3{font-size:15px;font-weight:600;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prev p{font-size:13px;color:var(--sub);margin-top:3px}
+.drop{display:flex;flex-direction:column;align-items:center;gap:4px;padding:24px 16px;text-align:center;cursor:pointer;color:var(--sub);font-size:15px}
+.drop b{color:var(--blue);font-weight:600;font-size:17px}
+.drop.over{background:color-mix(in srgb,var(--blue) 10%,var(--card))}
+.tn{width:40px;height:40px;border-radius:6px;object-fit:cover;background:var(--card2);flex:none;display:grid;place-items:center;font-size:11px;font-weight:700;color:var(--sub)}
+.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px}
+.save{color:var(--green)}
+
+.toast{margin-top:12px;border-radius:10px;padding:12px 14px;font-size:15px;display:none;background:var(--card)}
+.toast.show{display:flex;gap:10px;align-items:flex-start}
+.toast.err{color:var(--red)}.toast.ok{color:var(--green)}.toast.info{color:var(--sub)}
+.prog{height:4px;border-radius:2px;background:var(--fill);overflow:hidden;margin-top:12px;display:none}
+.prog i{display:block;height:100%;width:0;background:var(--blue);transition:width .2s}
+.prog.ind i{width:30%;animation:run 1.1s infinite ease-in-out}
+@keyframes run{from{transform:translateX(-100%)}to{transform:translateX(340%)}}
+.spin{width:16px;height:16px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:sp .7s linear infinite;flex:none;margin-top:2px}
+@keyframes sp{to{transform:rotate(360deg)}}
+
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--sep)}
+.stats div{background:var(--card);padding:12px 8px;text-align:center}
+.stats b{display:block;font-size:22px;font-variant-numeric:tabular-nums}.stats span{font-size:12px;color:var(--sub)}
+.big{font-size:44px;font-weight:700;text-align:center;padding:18px 16px 4px;font-variant-numeric:tabular-nums;line-height:1}
+.bigsub{text-align:center;color:var(--sub);font-size:15px;padding-bottom:16px}
+.mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:19px;word-break:break-all;padding:16px;text-align:center}
+#qrBox{display:grid;place-items:center;padding:20px;background:#fff}
+#qrBox img,#qrBox canvas{max-width:100%;height:auto}
+.ipk{display:grid;grid-template-columns:minmax(0,1fr) 64px 76px 32px;gap:6px;align-items:center;padding:6px 8px 6px 16px}
+.ipk input,.ipk select{border:0;background:var(--card2);border-radius:8px;padding:8px;font-size:16px;width:100%}
+.ipk+.ipk{border-top:.5px solid var(--sep)}
+.sig{display:block;width:100%;height:220px;background:#fff;touch-action:none;cursor:crosshair}
+
+.ck{background:repeating-conic-gradient(#d1d1d6 0 25%,#fff 0 50%) 0 0/12px 12px!important}
+
+/* editor PDF */
+.etb{position:sticky;top:calc(env(safe-area-inset-top) + 52px);z-index:4;margin:12px -16px 0;padding:8px 12px;background:var(--bar);
+  backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:.5px solid var(--sep)}
+.etb .seg button{font-size:12px;padding:6px 2px}
+.eopt{display:flex;align-items:center;gap:8px;margin-top:8px;min-height:34px;flex-wrap:wrap;font-size:13px;color:var(--sub)}
+.dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--card);box-shadow:0 0 0 1px var(--sep);cursor:pointer;flex:none}
+.dot.on{box-shadow:0 0 0 2px var(--blue)}
+.tgl{border:0;background:var(--fill);border-radius:8px;min-width:34px;height:30px;font-weight:600;cursor:pointer;padding:0 8px;font-size:14px}
+.tgl.on{background:var(--blue);color:#fff}
+.pages{display:grid;gap:14px;margin-top:14px}
+.pg{position:relative;background:#fff;box-shadow:0 1px 6px #0003;border-radius:2px;overflow:hidden}
+.pg canvas{display:block;width:100%;height:auto}
+.pgno{position:absolute;right:6px;bottom:6px;font-size:11px;background:#0008;color:#fff;border-radius:6px;padding:2px 6px;pointer-events:none;z-index:3}
+.ov{position:absolute;inset:0;touch-action:pan-y}
+.ov.draw{touch-action:none;cursor:crosshair}
+.ob{position:absolute}
+.ob:not(.text){touch-action:none}
+.ob .in{position:absolute;inset:0}
+.ob.text .in{position:static;font-family:Helvetica,Arial,sans-serif;line-height:1.2;white-space:pre;outline:none;min-width:10px;padding:0;cursor:text;-webkit-user-select:text;user-select:text}
+.ob.text .in:empty::before{content:"Ketik…";color:#aaa}
+.ob.erase .in{background:#fff;outline:1px dashed #ff3b30}
+.ob.highlight .in{mix-blend-mode:multiply;opacity:.38}
+.ob.image img{width:100%;height:100%;display:block;pointer-events:none}
+.ob svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.ob.sel{outline:1.5px solid var(--blue);outline-offset:2px}
+.hd{position:absolute;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;color:#fff;font-size:13px;line-height:1;touch-action:none;z-index:2;box-shadow:0 1px 4px #0005;cursor:grab}
+.hd[data-h=move]{left:-17px;top:-17px;background:var(--blue)}
+.hd[data-h=del]{right:-17px;top:-17px;background:var(--red);cursor:pointer}
+.hd[data-h=size]{right:-17px;bottom:-17px;background:var(--blue);cursor:nwse-resize}
+.tmp{position:absolute;border:1.5px dashed var(--blue);background:#007aff14;pointer-events:none}
+.rep{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 32px;gap:6px;padding:6px 8px 6px 16px;align-items:center}
+.rep input{border:0;background:var(--card2);border-radius:8px;padding:8px;font-size:16px;width:100%}
+.rep+.rep{border-top:.5px solid var(--sep)}
+.tx{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:15px;line-height:1.5;min-height:320px;white-space:pre-wrap}
+
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-top:.5px solid var(--sep);display:grid;grid-template-columns:repeat(5,minmax(0,1fr));padding:4px 4px calc(4px + env(safe-area-inset-bottom))}
+.tabbar button{border:0;background:none;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;font-weight:500;color:var(--sub);padding:4px 0;cursor:pointer;min-height:48px}
+.tabbar button.on{color:var(--blue)}
+.tabbar svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.legal{text-align:center;font-size:12px;color:var(--sub);margin-top:28px;line-height:1.5}
+.hide{display:none!important}
+.view{animation:push .28s cubic-bezier(.3,.7,.4,1)}
+@keyframes push{from{opacity:.4;transform:translateX(24px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div class="nav" id="nav">
+  <button class="back hide" id="back" type="button"><svg viewBox="0 0 13 21"><path d="M11 2 3 10.5 11 19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="backTxt">Kembali</span></button>
+  <div class="t" id="navT">SatSet</div><span></span>
+</div>
+<main id="main"></main>
+<nav class="tabbar" id="tabbar"></nav>
+
+<script>
+{
+// Kosong = backend di domain yang sama. Isi jika frontend & backend beda domain.
+const API = "";
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const kb = n => n < 1024 ? n + " B" : n < 1048576 ? (n / 1024).toFixed(0) + " KB" : (n / 1048576).toFixed(1) + " MB";
+const extOf = n => (n.match(/\.([^.]+)$/) || [, ""])[1].toLowerCase();
+const stem = n => n.replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "_").slice(0, 80) || "file";
+const store = { get(k, d){ try { return JSON.parse(localStorage.getItem("alldl_" + k)) ?? d } catch { return d } },
+                set(k, v){ try { localStorage.setItem("alldl_" + k, JSON.stringify(v)) } catch {} } };
+
+// ---------- ikon (stroke 24x24)
+const P = {
+  down:"M12 4v11m-5-5 5 5 5-5M5 20h14", img:"M4 5h16v14H4zM4 16l5-5 4 4 2-2 5 5M15 9.5h.01",
+  doc:"M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6", pdf:"M6 3h8l5 5v13H6zM14 3v5h5M9 15h1.5a1.5 1.5 0 0 0 0-3H9v5",
+  tool:"M14.7 6.3a4 4 0 0 0-5.4 5.2L3 17.8V21h3.2l6.3-6.3a4 4 0 0 0 5.2-5.4l-2.5 2.5-2.5-.5-.5-2.5z",
+  compress:"M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5", swap:"M7 7h12l-3-3M17 17H5l3 3",
+  sparkle:"M12 3l2 5 5 2-5 2-2 5-2-5-5-2 5-2zM19 15l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8z", resize:"M4 9V4h5M20 15v5h-5M4 4l7 7M20 20l-7-7",
+  merge:"M6 4v6a4 4 0 0 0 4 4h8m-3-3 3 3-3 3M6 20v-3", split:"M12 3v18M5 8l-3 4 3 4M19 8l3 4-3 4",
+  rotate:"M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5", trash:"M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3",
+  hash:"M5 9h14M5 15h14M10 4 8 20M16 4l-2 16", drop:"M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z",
+  lock:"M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3", unlock:"M6 11h12v9H6zM8 11V8a4 4 0 0 1 7.5-2",
+  text:"M5 6V4h14v2M12 4v16M9 20h6", qr:"M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 18h2v2h-2zM14 18h2M18 14h2",
+  key:"M15 7a4 4 0 1 1-3.5 6L4 20.5V17h3v-2h2l2.5-2.5A4 4 0 0 1 15 7zM16 8h.01", calc:"M6 3h12v18H6zM9 7h6M9 12h.01M12 12h.01M15 12h.01M9 16h.01M12 16h.01M15 16h.01",
+  pen:"M3 20c3-1 4-4 7-4s3 3 6 3 3-2 5-3M14 4l4 4-7 7H7v-4z", music:"M9 18V5l11-2v13M9 18a3 3 0 1 1-3-3 3 3 0 0 1 3 3zM20 16a3 3 0 1 1-3-3 3 3 0 0 1 3 3z",
+  grid:"M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z",
+  count:"M4 7h4M6 5v4M4 17h4M14 6h6M14 12h6M14 18h6", edit:"M4 20h4L19 9l-4-4L4 16zM13.5 6.5l4 4",
+  cut:"M12 3c-3 0-5 2.5-5 5.5S9 13 9 15v1h6v-1c0-2 2-3.5 2-6.5S15 3 12 3zM9 19h6M10 22h4", sheet:"M4 4h16v16H4zM4 10h16M4 15h16M10 4v16", slide:"M3 4h18v12H3zM12 16v4M8 20h8"
+};
+const svg = k => `<svg viewBox="0 0 24 24"><path d="${P[k]}"/></svg>`;
+const chev = '<svg class="chev" viewBox="0 0 8 14"><path d="M1 1l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+
+const TABS = [
+  {id:"unduh", label:"Unduh", icon:"down", title:"SATSET", lead:"Semua urusan file, sat-set. Semua alat berjalan langsung di HP-mu."},
+  {id:"gambar", label:"Gambar", icon:"img", title:"Gambar", lead:"Kompres, ubah format, perbesar resolusi & ubah ukuran foto."},
+  {id:"dokumen", label:"Dokumen", icon:"doc", title:"Dokumen", lead:"Edit PDF & TXT, ubah TXT ke PDF/Word, dan ambil teks dari PDF."},
+  {id:"pdf", label:"PDF", icon:"pdf", title:"Alat PDF", lead:"Edit, gabung, pisah, kompres dan rapikan PDF."},
+  {id:"alat", label:"Alat", icon:"tool", title:"Alat Kerja & Belajar", lead:"Untuk kantor, kuliah, sekolah dan kerja sehari-hari."}
+];
+
+const IMG = "image/*,.heic,.heif";
+const OFFICE = ".doc,.docx,.odt,.rtf,.txt,.md,.html,.xls,.xlsx,.ods,.csv,.ppt,.pptx,.odp,.pdf";
+const BR = {name:"bitrate", label:"Kualitas audio", type:"seg", choices:[["128","128 kbps"],["192","192 kbps"],["320","320 kbps"]], def:"192"};
+const PAGES = (label, ph, show) => ({name:"pages", label, type:"text", ph, show});
+
+// ---------- daftar alat
+const TOOLS = [
+  // UNDUH
+  {id:"mp4-mp3", tab:"unduh", title:"Ubah MP4 ke MP3", sub:"Ambil audio dari file video", icon:"music", color:"#ff2d55",
+   accept:"video/*,audio/*", multi:true, api:"/api/convert", batch:true, fields:[BR],
+   note:"Diproses langsung di HP. Cocok untuk video sampai ±15 menit."},
+
+  // GAMBAR
+  {id:"kompres-foto", tab:"gambar", title:"Kompres Foto", sub:"Perkecil ukuran file tanpa terlihat beda", icon:"compress", color:"#34c759",
+   accept:IMG, multi:true, client:"compress", fields:[
+     {name:"quality", label:"Kualitas", type:"range", min:10, max:95, def:70, unit:"%"},
+     {name:"max", label:"Ukuran maksimal", type:"seg", choices:[["0","Asli"],["2048","2048px"],["1600","1600px"],["1080","1080px"]], def:"1600"},
+     {name:"to", label:"Format hasil", type:"seg", choices:[["jpg","JPG"],["webp","WEBP"]], def:"jpg"}],
+   note:"Diproses langsung di HP-mu, foto tidak dikirim ke server. Ukuran 1600px pas untuk WhatsApp & upload tugas."},
+  {id:"ubah-format", tab:"gambar", title:"Ubah Format Gambar", sub:"PNG, JPG, JPEG, WEBP, HEIC, ICO, BMP…", icon:"swap", color:"#007aff",
+   accept:IMG, multi:true, client:"convert", fields:[
+     {name:"to", label:"Ubah ke", type:"seg", choices:[["jpg","JPG"],["jpeg","JPEG"],["png","PNG"],["webp","WEBP"]], def:"jpg"},
+     {name:"to2", label:"Format lain", type:"seg", choices:[["","—"],["bmp","BMP"],["ico","ICO"],["pdf","PDF"]], def:""},
+     {name:"quality", label:"Kualitas (JPG/WEBP)", type:"range", min:30, max:100, def:92, unit:"%"}],
+   note:"JPG dan JPEG itu format yang sama, hanya beda nama. Foto HEIC dari iPhone otomatis terbaca. Bagian transparan jadi putih kalau diubah ke JPG."},
+  {id:"perbesar", tab:"gambar", title:"Perbesar Resolusi", sub:"Perbesar foto 2× atau 4× dengan penajaman", icon:"sparkle", color:"#af52de",
+   accept:IMG, multi:true, api:"/api/img/upscale", batch:true, fields:[
+     {name:"scale", label:"Perbesar", type:"seg", choices:[["2","2× (cepat)"],["4","4× (maksimal)"]], def:"2"},
+     {name:"format", label:"Format hasil", type:"seg", choices:[["png","PNG"],["jpg","JPG"],["webp","WEBP"]], def:"jpg"}],
+   note:"Diproses langsung di HP: diperbesar bertahap lalu dipertajam (bukan AI). Hasil maksimal ±16 MP."},
+  {id:"ubah-ukuran", tab:"gambar", title:"Ubah Ukuran Foto", sub:"Atur lebar dalam piksel atau persen", icon:"resize", color:"#ff9500",
+   accept:IMG, multi:true, client:"resize", fields:[
+     {name:"mode", label:"Cara", type:"seg", choices:[["px","Lebar (px)"],["pct","Persen"]], def:"px"},
+     {name:"w", label:"Lebar baru (px)", type:"num", ph:"mis. 800", def:"800", show:v => v.mode === "px"},
+     {name:"pct", label:"Skala", type:"range", min:10, max:200, def:50, unit:"%", show:v => v.mode === "pct"}],
+   note:"Tinggi menyesuaikan otomatis agar foto tidak gepeng. Pas untuk pas foto, upload formulir, atau syarat lamaran."},
+  {id:"hapus-bg", tab:"gambar", title:"Hapus Background", sub:"Latar foto hilang jadi PNG, atau ganti merah/biru", icon:"cut", color:"#ff2d55",
+   accept:IMG, multi:true, api:"/api/img/rmbg", batch:true, fields:[
+     {name:"bg", label:"Latar baru", type:"seg", choices:[["transparent","Transparan"],["white","Putih"],["red","Merah"],["blue","Biru"]], def:"transparent"},
+     {name:"crop", label:"Potong", type:"seg", choices:[["0","Ukuran asli"],["1","Rapat ke objek"]], def:"0"}],
+   note:"Pakai AI. Model AI (±4,6 MB) diunduh sekali saat pertama dipakai. Latar merah/biru pas untuk pas foto KTP, ijazah, dan lamaran kerja. Transparan cocok untuk logo, stiker, dan foto produk jualan."},
+  {id:"foto-grid", tab:"gambar", title:"Foto Grid & Kolase", sub:"Gabung foto jadi kolase, atau pecah 1 foto jadi grid feed IG", icon:"grid", color:"#5856d6", custom:"grid"},
+  {id:"foto-pdf-g", tab:"gambar", title:"Foto ke PDF", sub:"Gabung beberapa foto jadi 1 PDF", icon:"pdf", color:"#ff3b30", link:"foto-pdf"},
+
+  // DOKUMEN
+  {id:"edit-pdf-d", tab:"dokumen", title:"Edit PDF", sub:"Tambah teks, tutup tulisan, stabilo, coret, TTD", icon:"edit", color:"#ff3b30", link:"edit-pdf"},
+  {id:"edit-txt", tab:"dokumen", title:"Edit TXT", sub:"Buka, edit, cari & ganti, simpan TXT/PDF/Word", icon:"text", color:"#8e8e93", custom:"txt"},
+  {id:"txt-pdf", tab:"dokumen", title:"TXT ke PDF / Word", sub:"Catatan teks jadi dokumen rapi", icon:"text", color:"#5856d6",
+   accept:".txt,.md", multi:true, api:"/api/doc/convert", batch:true, fields:[
+     {name:"to", label:"Ubah ke", type:"seg", choices:[["pdf","PDF"],["docx","Word"]], def:"pdf"}]},
+  {id:"pdf-txt", tab:"dokumen", title:"PDF ke TXT", sub:"Ambil semua teks dari PDF", icon:"text", color:"#5856d6",
+   accept:".pdf", multi:true, api:"/api/doc/convert", batch:true, fixed:{to:"txt"}},
+
+  // PDF
+  {id:"edit-pdf", tab:"pdf", title:"Edit PDF", sub:"Tambah teks, tutup tulisan, stabilo, coret, TTD", icon:"edit", color:"#ff3b30", custom:"pdfedit"},
+  {id:"gabung-pdf", tab:"pdf", title:"Gabung PDF", sub:"Satukan banyak PDF/foto, atur urutannya", icon:"merge", color:"#ff3b30",
+   accept:".pdf,"+IMG, multi:true, order:true, api:"/api/pdf/merge", key:"files", min:2},
+  {id:"pisah-pdf", tab:"pdf", title:"Pisah / Ambil Halaman", sub:"Ambil halaman tertentu atau pecah semua", icon:"split", color:"#ff9500",
+   accept:".pdf", api:"/api/pdf/split", fields:[
+     {name:"mode", label:"Cara", type:"seg", choices:[["range","Ambil halaman"],["all","Pecah per halaman"]], def:"range"},
+     PAGES("Halaman yang diambil", "mis. 1-3,5", v => v.mode === "range")]},
+  {id:"kompres-pdf", tab:"pdf", title:"Kompres PDF", sub:"Perkecil PDF untuk upload/email", icon:"compress", color:"#34c759",
+   accept:".pdf", multi:true, api:"/api/pdf/compress", batch:true, fields:[
+     {name:"level", label:"Tingkat kompres", type:"seg", choices:[["low","Ringan"],["medium","Sedang"],["high","Kuat"]], def:"medium"}],
+   note:"Halaman diubah jadi gambar agar ukurannya kecil, jadi teksnya tidak bisa diseleksi lagi. Cocok untuk scan, tugas, dan lampiran."},
+  {id:"putar-pdf", tab:"pdf", title:"Putar PDF", sub:"Benahi halaman yang miring", icon:"rotate", color:"#007aff",
+   accept:".pdf", api:"/api/pdf/rotate", fields:[
+     {name:"angle", label:"Putar", type:"seg", choices:[["90","90° kanan"],["180","180°"],["270","90° kiri"]], def:"90"},
+     PAGES("Halaman (kosong = semua)", "mis. 2,4")]},
+  {id:"hapus-hal", tab:"pdf", title:"Hapus Halaman", sub:"Buang halaman yang tidak perlu", icon:"trash", color:"#8e8e93",
+   accept:".pdf", api:"/api/pdf/delete", fields:[PAGES("Halaman yang dihapus", "mis. 2,4-5")]},
+  {id:"nomor-hal", tab:"pdf", title:"Nomor Halaman", sub:"Untuk skripsi, laporan, makalah", icon:"hash", color:"#5856d6",
+   accept:".pdf", api:"/api/pdf/pagenum", fields:[
+     {name:"position", label:"Posisi", type:"seg", choices:[["bottom-center","Bawah tengah"],["bottom-right","Bawah kanan"],["top-right","Atas kanan"]], def:"bottom-center"},
+     {name:"style", label:"Gaya", type:"seg", choices:[["n","1"],["n/total","1 / 10"],["halaman","Halaman 1"]], def:"n"},
+     {name:"start", label:"Mulai dari nomor", type:"num", def:"1"}]},
+  {id:"watermark", tab:"pdf", title:"Watermark PDF", sub:"Tulisan miring transparan di tiap halaman", icon:"drop", color:"#00c7be",
+   accept:".pdf", api:"/api/pdf/watermark", fields:[
+     {name:"text", label:"Teks watermark", type:"text", ph:"mis. RAHASIA / DRAFT / nama kamu", def:""},
+     {name:"opacity", label:"Transparansi", type:"seg", choices:[["0.1","Tipis"],["0.18","Sedang"],["0.3","Tebal"]], def:"0.18"}]},
+  {id:"pdf-gambar", tab:"pdf", title:"PDF ke Gambar", sub:"Tiap halaman jadi JPG/PNG", icon:"img", color:"#ff9500",
+   accept:".pdf", api:"/api/pdf/to-images", fields:[
+     {name:"format", label:"Format", type:"seg", choices:[["jpg","JPG"],["png","PNG"]], def:"jpg"},
+     {name:"quality", label:"Kualitas", type:"seg", choices:[["low","Rendah"],["medium","Sedang"],["high","Tinggi"]], def:"medium"}],
+   note:"Lebih dari 1 halaman → hasilnya file ZIP. Di iPhone, ketuk ZIP di app File untuk membukanya."},
+  {id:"foto-pdf", tab:"pdf", title:"Foto ke PDF", sub:"Scan tugas/dokumen dari foto", icon:"pdf", color:"#ff3b30",
+   accept:IMG, multi:true, order:true, api:"/api/pdf/from-images", key:"files", fields:[
+     {name:"page", label:"Ukuran halaman", type:"seg", choices:[["a4","A4"],["fit","Sesuai foto"]], def:"a4"}]},
+
+  // ALAT
+  {id:"hitung-kata", tab:"alat", title:"Penghitung Kata", sub:"Kata, karakter, waktu baca", icon:"count", color:"#007aff", custom:"words"},
+  {id:"ubah-huruf", tab:"alat", title:"Ubah Huruf", sub:"KAPITAL, kecil, Judul, Kalimat", icon:"text", color:"#5856d6", custom:"case"},
+  {id:"qr", tab:"alat", title:"Buat QR Code", sub:"Link, teks, WiFi, nomor WA", icon:"qr", color:"#1c1c1e", custom:"qr"},
+  {id:"ttd", tab:"alat", title:"Tanda Tangan Digital", sub:"Gambar TTD, simpan PNG transparan", icon:"pen", color:"#00c7be", custom:"sign"},
+  {id:"ipk", tab:"alat", title:"Kalkulator IPK / IPS", sub:"Hitung nilai semester & kumulatif", icon:"calc", color:"#ff9500", custom:"ipk"},
+  {id:"password", tab:"alat", title:"Pembuat Password", sub:"Password kuat untuk akun kantor/kampus", icon:"key", color:"#34c759", custom:"pass"}
+];
+const byId = Object.fromEntries(TOOLS.map(t => [t.id, t]));
+const HAS_OFFICE = true;
+
+// ---------- UI helpers
+function toast(el, type, text){
+  el.className = "toast show " + type;
+  el.innerHTML = (type === "info" ? '<span class="spin"></span>' : "") + "<span>" + esc(text) + "</span>";
+}
+const hideToast = el => el.className = "toast";
+function prog(el, p){
+  if(p === null){ el.style.display = "none"; el.classList.remove("ind"); return; }
+  el.style.display = "block";
+  if(p < 0){ el.classList.add("ind"); el.firstElementChild.style.width = ""; }
+  else { el.classList.remove("ind"); el.firstElementChild.style.width = p + "%"; }
+}
+const NET = "Server belum tersambung. Di pratinjau ini alat server belum aktif — jalan setelah di-deploy.";
+const netErr = e => (e && e.message) || "Terjadi kesalahan. Coba lagi.";
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function saveBlob(blob, name){
+  if(isIOS && navigator.canShare){
+    const f = new File([blob], name, {type:blob.type || "application/octet-stream"});
+    if(navigator.canShare({files:[f]})){ navigator.share({files:[f]}).catch(e => { if(e.name !== "AbortError") downloadBlob(blob, name); }); return; }
+  }
+  downloadBlob(blob, name);
+}
+function downloadBlob(blob, name){
+  const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 120000);
+}
+async function copyText(t, btn){
+  try { await navigator.clipboard.writeText(t); const o = btn.textContent; btn.textContent = "Tersalin ✓"; setTimeout(() => btn.textContent = o, 1400); }
+  catch { btn.textContent = "Salin manual"; }
+}
+function segHTML(name, choices, def){
+  return `<div class="segwrap"><div class="seg" data-seg="${esc(name)}">${choices.map(([v, t]) => `<button type="button" data-v="${esc(v)}" class="${v === def ? "on" : ""}">${esc(t)}</button>`).join("")}</div></div>`;
+}
+function bindSegs(root, onChange){
+  root.querySelectorAll("[data-seg]").forEach(s => s.onclick = e => {
+    const b = e.target.closest("button"); if(!b) return;
+    [...s.children].forEach(x => x.classList.toggle("on", x === b)); onChange && onChange();
+  });
+}
+const segVal = (root, n) => root.querySelector(`[data-seg="${n}"] .on`)?.dataset.v ?? "";
+
+// ---------- shell: tab bar, nav, routing
+$("#tabbar").innerHTML = TABS.map(t => `<button type="button" data-tab="${t.id}">${svg(t.icon)}<span>${t.label}</span></button>`).join("");
+$("#tabbar").onclick = e => { const b = e.target.closest("button"); if(b) go(b.dataset.tab); };
+addEventListener("scroll", () => $("#nav").classList.toggle("line", scrollY > 36), {passive:true});
+$("#back").onclick = () => history.length > 1 && curTool ? history.back() : go(curTab);
+let curTab = "unduh", curTool = null;
+function go(h){ if(location.hash.slice(1) === h) route(); else location.hash = h; }
+function route(){
+  const h = location.hash.slice(1);
+  const tool = byId[h]; const tab = TABS.find(t => t.id === h);
+  if(tool){ curTab = tool.tab; openTool(tool.link ? byId[tool.link] : tool); }
+  else { curTab = tab ? tab.id : "unduh"; curTool = null; renderTab(curTab); }
+  document.querySelectorAll("#tabbar button").forEach(b => b.classList.toggle("on", b.dataset.tab === curTab));
+  scrollTo(0, 0); $("#nav").classList.remove("line");
+}
+addEventListener("hashchange", route);
+
+function listHTML(tab){
+  return `<div class="group">${TOOLS.filter(t => t.tab === tab && (HAS_OFFICE || !t.office)).map(t => `<a class="cell ic" href="#${t.id}">
+    <div class="icon" style="background:${t.color}">${svg(t.icon)}</div>
+    <div class="grow">${esc(t.title)}<small>${esc(t.sub)}</small></div>${chev}</a>`).join("")}</div>`;
+}
+function renderTab(id){
+  const T = TABS.find(t => t.id === id);
+  $("#back").classList.add("hide"); $("#navT").textContent = T.title;
+  const logo = id === "unduh" ? `<svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#007aff"/><path d="M74 16H38L24 52h30L26 84h36l14-34H46z" fill="#fff"/></svg>` : "";
+  let html = `<div class="view"><h1>${logo}${esc(T.title)}</h1><p class="lead">${esc(T.lead)}</p>`;
+  if(id === "unduh") html += downloaderHTML() + `<div class="hdr">Alat audio</div>` + listHTML("unduh") + howHTML();
+  else html += `<div class="hdr">Pilih alat</div>` + listHTML(id);
+  html += `<p class="legal">© ${new Date().getFullYear()} SatSet · by Muhammad Alfiansyah<br>Unduh hanya konten milikmu atau yang kamu punya izin.</p></div>`;
+  $("#main").innerHTML = html;
+  if(id === "unduh") bindDownloader();
+}
+
+// ---------- DOWNLOAD (lewat Shortcut a-Shell + SW-DLT, langsung di iPhone)
+const YTCMD = "python3 -m pip install -U yt-dlp";
+function downloaderHTML(){
+  return `<div class="hdr">Download video & MP3</div>
+  <div class="group">
+    <div class="cell ic"><div class="icon" style="background:#1c1c1e">1</div><div class="grow">Install <b>a-Shell</b> (gratis)<small>Aplikasi terminal di App Store</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#007aff">2</div><div class="grow">Buka a-Shell, tempel perintah di bawah, Enter<small>Tunggu sampai muncul "Successfully installed"</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#34c759">3</div><div class="grow">Pasang Shortcut <b>SW-DLT</b><small>Halaman Releases → rilis teratas → Tambah Pintasan</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#ff9500">4</div><div class="grow">Di TikTok/YouTube/IG/FB: <b>Bagikan → SW-DLT</b><small>Pilih Video atau Audio, lalu Simpan Video</small></div></div>
+  </div>
+  <div class="hdr">Perintah untuk a-Shell</div>
+  <div class="group"><div class="field"><code style="flex:1;font-size:15px;overflow-wrap:anywhere">${YTCMD}</code><button class="pill" id="cpcmd" type="button">Salin</button></div></div>
+  <a class="btn" href="https://apps.apple.com/app/id1473805438" target="_blank" rel="noopener">Buka a-Shell di App Store</a>
+  <a class="btn sec" href="https://github.com/net00-1/SW-DLT/releases" target="_blank" rel="noopener">Buka Shortcut SW-DLT</a>
+  <p class="foot">Download berjalan langsung di iPhone-mu, tanpa server. Ulangi perintah di atas sebulan sekali supaya tetap bisa download. Gunakan hanya untuk video milikmu atau yang sudah kamu dapat izinnya.</p>`;
+}
+function howHTML(){ return ""; }
+function bindDownloader(){ const b = $("#cpcmd"); if(b) b.onclick = e => copyText(YTCMD, e.target); }
+async function readResp(resp, fallback, barEl){
+  if(!resp.ok){ let t = "Gagal memproses."; try { t = (await resp.json()).error || t } catch {} throw new Error(t); }
+  const total = +resp.headers.get("Content-Length") || 0;
+  const cd = resp.headers.get("Content-Disposition") || "";
+  const mm = cd.match(/filename\*=UTF-8''([^;]+)|filename="?([^";]+)"?/i);
+  const name = mm ? decodeURIComponent(mm[1] || mm[2]) : fallback;
+  const rd = resp.body.getReader(), parts = []; let got = 0;
+  for(;;){ const {done, value} = await rd.read(); if(done) break; parts.push(value); got += value.length; if(total && barEl) prog(barEl, Math.round(got / total * 100)); }
+  return {blob:new Blob(parts, {type:resp.headers.get("Content-Type") || "application/octet-stream"}), name};
+}
+
+// ---------- GENERIC TOOL PAGE
+let files = [];
+function openTool(t){
+  curTool = t; files = [];
+  const T = TABS.find(x => x.id === curTab);
+  $("#back").classList.remove("hide"); $("#backTxt").textContent = T.label; $("#navT").textContent = t.title;
+  let h = `<div class="view"><h1>${esc(t.title)}</h1><p class="lead">${esc(t.sub)}</p>`;
+  if(t.custom){ h += CUSTOM[t.custom].html() + "</div>"; $("#main").innerHTML = h; CUSTOM[t.custom].bind(); return; }
+  h += `<div class="hdr">File</div><div class="group"><label class="drop" id="drop"><b>${t.multi ? "Pilih File" : "Pilih 1 File"}</b>
+    <span>${esc(acceptLabel(t.accept))}</span><input type="file" id="file" accept="${esc(t.accept)}" ${t.multi ? "multiple" : ""} hidden></label></div>
+    <div id="fileList"></div>`;
+  for(const f of t.fields || []){
+    h += `<div class="fld" data-f="${esc(f.name)}"><div class="hdr">${esc(f.label)}</div><div class="group">`;
+    if(f.type === "seg") h += segHTML(f.name, f.choices, f.def);
+    else if(f.type === "range") h += `<div class="range"><input type="range" data-in="${f.name}" min="${f.min}" max="${f.max}" value="${f.def}"><output>${f.def}${f.unit || ""}</output></div>`;
+    else if(f.type === "select") h += `<div class="field"><select data-in="${f.name}">${f.choices.map(([v, l]) => `<option value="${esc(v)}"${v === f.def ? " selected" : ""}>${esc(l)}</option>`).join("")}</select></div>`;
+    else h += `<div class="field"><input data-in="${f.name}" type="${f.type === "num" ? "number" : f.type}" ${f.type === "num" ? 'inputmode="numeric" min="1"' : ""} placeholder="${esc(f.ph || "")}" value="${esc(f.def || "")}" autocomplete="off"></div>`;
+    h += `</div></div>`;
+  }
+  if(t.note) h += `<p class="foot">${esc(t.note)}</p>`;
+  h += `<button class="btn" id="run" type="button" disabled>${esc(runLabel(t))}</button>
+    <div class="prog" id="bar"><i></i></div><div class="toast" id="msg"></div>
+    <div id="out"></div></div>`;
+  $("#main").innerHTML = h;
+  const root = $("#main");
+  bindSegs(root, () => showFields(t));
+  root.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => {
+    const f = t.fields.find(x => x.name === r.dataset.in); r.nextElementSibling.textContent = r.value + (f.unit || ""); });
+  root.querySelectorAll("[data-in]").forEach(i => i.addEventListener("input", () => showFields(t)));
+  showFields(t);
+  const inp = $("#file"), drop = $("#drop");
+  inp.onchange = () => { addFiles(t, [...inp.files]); inp.value = ""; };
+  ["dragover","dragenter"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+  ["dragleave","drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+  drop.addEventListener("drop", e => addFiles(t, [...e.dataTransfer.files]));
+  $("#run").onclick = () => run(t);
+}
+const runLabel = t => ({"kompres-foto":"Kompres","ubah-format":"Ubah Format","perbesar":"Perbesar dengan AI","ubah-ukuran":"Ubah Ukuran",
+  "gabung-pdf":"Gabungkan","pisah-pdf":"Proses","kompres-pdf":"Kompres PDF","putar-pdf":"Putar","hapus-hal":"Hapus Halaman","nomor-hal":"Tambah Nomor",
+  "watermark":"Tambah Watermark","kunci-pdf":"Kunci PDF","buka-pdf":"Buka Kunci","pdf-gambar":"Ubah ke Gambar","foto-pdf":"Buat PDF","mp4-mp3":"Ubah ke MP3"}[t.id] || "Ubah");
+function acceptLabel(a){
+  if(a === IMG) return "JPG, PNG, HEIC, WEBP, GIF…";
+  if(a.startsWith("video")) return "MP4, MOV, MKV, WEBM · maks 200 MB";
+  return a.split(",").filter(x => x.startsWith(".")).map(x => x.slice(1).toUpperCase()).slice(0, 8).join(", ") + " · maks 200 MB";
+}
+function vals(t){
+  const root = $("#main"), v = {...(t.fixed || {})};
+  for(const f of t.fields || []){
+    if(f.type === "seg") v[f.name] = segVal(root, f.name);
+    else { const el = root.querySelector(`[data-in="${f.name}"]`); v[f.name] = el ? el.value.trim() : ""; }
+  }
+  if(t.id === "ubah-format" && v.to2) v.to = v.to2;
+  return v;
+}
+function showFields(t){
+  const v = vals(t);
+  for(const f of t.fields || []) if(f.show) $(`[data-f="${f.name}"]`).classList.toggle("hide", !f.show(v));
+}
+function addFiles(t, list){
+  const bad = list.filter(f => f.size > 200 * 1048576);
+  if(bad.length) toast($("#msg"), "err", "File lebih dari 200 MB dilewati.");
+  list = list.filter(f => f.size <= 200 * 1048576);
+  files = t.multi ? files.concat(list) : list.slice(0, 1);
+  renderFiles(t);
+}
+function renderFiles(t){
+  const box = $("#fileList");
+  $("#run").disabled = files.length < (t.min || 1);
+  if(!files.length){ box.innerHTML = ""; return; }
+  box.innerHTML = `<div class="hdr">${files.length} file dipilih${t.order ? " · atur urutan" : ""}</div><div class="group">${files.map((f, i) => `
+    <div class="cell"><div class="tn" data-i="${i}">${esc(extOf(f.name).toUpperCase().slice(0, 4))}</div>
+    <div class="grow"><div class="name">${esc(f.name)}</div><small>${kb(f.size)}</small></div>
+    ${t.order ? `<button class="mini" data-up="${i}" type="button" aria-label="Naik">↑</button><button class="mini" data-dn="${i}" type="button" aria-label="Turun">↓</button>` : ""}
+    <button class="mini red" data-rm="${i}" type="button" aria-label="Hapus">✕</button></div>`).join("")}</div>
+    ${t.min && files.length < t.min ? `<p class="foot">Tambah minimal ${t.min - files.length} file lagi.</p>` : ""}`;
+  box.querySelectorAll(".tn").forEach(el => { const f = files[+el.dataset.i]; if(f.type.startsWith("image/")){
+    const im = new Image(); im.className = "tn"; im.alt = ""; im.src = URL.createObjectURL(f); im.onerror = () => im.replaceWith(el); el.replaceWith(im); } });
+  box.onclick = e => {
+    const b = e.target.closest("button"); if(!b) return;
+    const i = +(b.dataset.up ?? b.dataset.dn ?? b.dataset.rm);
+    if(b.dataset.rm !== undefined) files.splice(i, 1);
+    else { const j = b.dataset.up !== undefined ? i - 1 : i + 1; if(j < 0 || j >= files.length) return; [files[i], files[j]] = [files[j], files[i]]; }
+    renderFiles(t);
+  };
+}
+
+// ---------- proses
+const results = [];
+function addResult(blob, name, before){
+  const url = URL.createObjectURL(blob);
+  const isImg = blob.type.startsWith("image/");
+  const diff = before ? Math.round((1 - blob.size / before) * 100) : null;
+  const out = $("#out");
+  if(!out.firstChild) out.innerHTML = `<div class="hdr">Hasil</div><div class="group" id="outList"></div><button class="btn sec hide" id="saveAll" type="button">Simpan Semua</button>`;
+  const row = document.createElement("div"); row.className = "cell";
+  row.innerHTML = `${isImg ? `<img class="tn${/png$/.test(name) ? " ck" : ""}" src="${url}" alt="">` : `<div class="tn">${esc(extOf(name).toUpperCase().slice(0, 4))}</div>`}
+    <div class="grow"><div class="name">${esc(name)}</div><small>${kb(blob.size)}${diff !== null ? (diff > 0 ? ` · <span class="save">hemat ${diff}%</span>` : " · tidak lebih kecil") : ""}</small></div>
+    <button class="pill" type="button">Simpan</button>`;
+  row.querySelector("button").onclick = () => saveBlob(blob, name);
+  $("#outList").appendChild(row);
+  results.push({blob, name});
+  if(results.length > 1){ $("#saveAll").classList.remove("hide"); $("#saveAll").onclick = () => results.forEach((r, i) => setTimeout(() => saveBlob(r.blob, r.name), i * 600)); }
+}
+async function run(t){
+  const m = $("#msg"), btn = $("#run"), v = vals(t);
+  for(const f of t.fields || []) if(["text","password"].includes(f.type) && f.name !== "pages" && !v[f.name] && (!f.show || f.show(v)))
+    return toast(m, "err", "Isi dulu: " + f.label.toLowerCase());
+  if(["hapus-hal"].includes(t.id) && !v.pages) return toast(m, "err", "Tulis halaman yang mau dihapus. Contoh: 2,4-5");
+  if(t.id === "pisah-pdf" && v.mode === "range" && !v.pages) return toast(m, "err", "Tulis halaman yang mau diambil. Contoh: 1-3,5");
+  results.length = 0; $("#out").innerHTML = "";
+  btn.disabled = true; prog($("#bar"), -1);
+  let ok = 0, fail = 0, lastErr = "";
+  const jobs = t.batch || t.client ? files.map(f => [f]) : [files];
+  for(let i = 0; i < jobs.length; i++){
+    toast(m, "info", jobs.length > 1 ? `Memproses ${i + 1} dari ${jobs.length}…` : (t.client ? "Memproses di HP…" : "Mengunggah & memproses di server…"));
+    try {
+      const r = t.client ? await CLIENT[t.client](jobs[i][0], v) : await serverJob(t, jobs[i], v);
+      addResult(r.blob, r.name, r.before); ok++;
+    } catch(e){ fail++; lastErr = netErr(e); }
+    if(jobs.length > 1) prog($("#bar"), Math.round((i + 1) / jobs.length * 100));
+  }
+  btn.disabled = false; prog($("#bar"), null);
+  if(!fail) toast(m, "ok", ok > 1 ? `Selesai: ${ok} file. Ketuk Simpan.` : "Selesai. Ketuk Simpan untuk menyimpan.");
+  else toast(m, "err", (ok ? `${ok} berhasil, ${fail} gagal. ` : "") + lastErr);
+}
+async function serverJob(t, list, v){
+  const fn = LOCAL[t.api]; if(!fn) throw new Error("Alat ini belum tersedia di versi web.");
+  return fn(list, v);
+}
+
+// ---------- pemrosesan gambar di HP (tanpa server)
+async function decode(file){
+  try { return await createImageBitmap(file, {imageOrientation:"from-image"}); } catch {}
+  return await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = () => rej(new Error("x")); im.src = URL.createObjectURL(file); });
+}
+function encode(src, w, h, type, q){
+  const c = document.createElement("canvas"); c.width = w; c.height = h;
+  const g = c.getContext("2d");
+  if(type === "image/jpeg"){ g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); }
+  g.imageSmoothingQuality = "high"; g.drawImage(src, 0, 0, w, h);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error("Browser tidak bisa membuat format ini.")), type, q));
+}
+const MT = {jpg:"image/jpeg", jpeg:"image/jpeg", png:"image/png", webp:"image/webp"};
+async function viaServer(path, file, v, before){
+  if(!LOCAL[path]) throw new Error(file.name + " tidak bisa dibaca di HP ini. Ubah dulu ke JPG.");
+  const r = await LOCAL[path]([file], v); return {...r, before};
+}
+const CLIENT = {
+  async compress(file, v){
+    let src; try { src = await decode(file); } catch { return viaServer("/api/img/compress", file, v, file.size); }
+    const max = +v.max || 0, W = src.width, H = src.height, k = max && Math.max(W, H) > max ? max / Math.max(W, H) : 1;
+    const blob = await encode(src, Math.round(W * k), Math.round(H * k), MT[v.to], v.quality / 100);
+    return {blob, name:`SatSet_${stem(file.name)}_kompres.${v.to}`, before:file.size};
+  },
+  async convert(file, v){
+    const to = v.to;
+    if(!MT[to]) return viaServer("/api/img/convert", file, {to, quality:v.quality});
+    let src; try { src = await decode(file); } catch { return viaServer("/api/img/convert", file, {to, quality:v.quality}); }
+    const blob = await encode(src, src.width, src.height, MT[to], v.quality / 100);
+    if(to === "webp" && blob.type !== "image/webp") return viaServer("/api/img/convert", file, {to, quality:v.quality});
+    return {blob, name:`SatSet_${stem(file.name)}.${to}`};
+  },
+  async resize(file, v){
+    const src = await decode(file).catch(() => { throw new Error("Gambar tidak bisa dibaca di HP ini. Ubah dulu ke JPG."); });
+    const k = v.mode === "pct" ? v.pct / 100 : Math.max(1, +v.w || 800) / src.width;
+    const W = Math.max(1, Math.round(src.width * k)), H = Math.max(1, Math.round(src.height * k));
+    const png = /png|gif|webp/.test(file.type), ext = png ? "png" : "jpg";
+    const blob = await encode(src, W, H, MT[ext], .92);
+    return {blob, name:`SatSet_${stem(file.name)}_${W}x${H}.${ext}`};
+  }
+};
+
+// ---------- ALAT KHUSUS
+const CUSTOM = {
+  words:{
+    html:() => `<div class="hdr">Teks</div><div class="group"><textarea id="tx" placeholder="Tempel atau ketik teks di sini…">${esc(store.get("words", ""))}</textarea></div>
+      <div class="hdr">Statistik</div><div class="group stats" id="st"></div>
+      <p class="foot">Waktu baca dihitung 200 kata/menit, waktu bicara 130 kata/menit. Cocok untuk cek batas kata esai, abstrak, atau caption.</p>`,
+    bind(){ const tx = $("#tx"); const upd = () => { const s = tx.value; store.set("words", s);
+      const w = (s.match(/[^\s]+/g) || []).length, sent = (s.match(/[^.!?]+[.!?]+/g) || []).length || (s.trim() ? 1 : 0);
+      const par = s.split(/\n\s*\n/).filter(p => p.trim()).length;
+      const mins = x => x < 1 ? (x * 60 | 0) + " dtk" : Math.ceil(x) + " mnt";
+      $("#st").innerHTML = [[w,"Kata"],[s.length,"Karakter"],[s.replace(/\s/g,"").length,"Tanpa spasi"],[sent,"Kalimat"],[par,"Paragraf"],[w ? mins(w/200) : "0","Waktu baca"]]
+        .map(([n, l]) => `<div><b>${esc(n)}</b><span>${l}</span></div>`).join(""); };
+      tx.oninput = upd; upd(); }
+  },
+  case:{
+    html:() => `<div class="hdr">Teks</div><div class="group"><textarea id="tx" placeholder="Ketik atau tempel teks…"></textarea></div>
+      <div class="hdr">Ubah jadi</div><div class="group">${[["up","HURUF KAPITAL SEMUA"],["low","huruf kecil semua"],["title","Huruf Awal Kapital"],["sent","Huruf awal kalimat"],["trim","Rapikan spasi & baris kosong"]]
+        .map(([k, l]) => `<button class="cell" data-k="${k}" type="button"><span class="grow">${l}</span>${chev}</button>`).join("")}</div>
+      <button class="btn" id="cp" type="button">Salin Teks</button>`,
+    bind(){ const tx = $("#tx");
+      const kecil = new Set(["di","ke","dari","dan","yang","atau","untuk","pada","dengan","the","of","and","in","a"]);
+      $("#main").querySelectorAll("[data-k]").forEach(b => b.onclick = () => { const s = tx.value, k = b.dataset.k;
+        tx.value = k === "up" ? s.toUpperCase() : k === "low" ? s.toLowerCase()
+          : k === "title" ? s.toLowerCase().replace(/[^\s\-]+/g, (w, i) => i && kecil.has(w) ? w : w[0].toUpperCase() + w.slice(1))
+          : k === "sent" ? s.toLowerCase().replace(/(^\s*|[.!?]\s+)(\p{L})/gu, (a, p, c) => p + c.toUpperCase())
+          : s.replace(/[ \t]+/g, " ").replace(/\n{3,}/g, "\n\n").split("\n").map(l => l.trim()).join("\n").trim(); });
+      $("#cp").onclick = e => copyText(tx.value, e.target); }
+  },
+  qr:{
+    html:() => `<div class="hdr">Jenis</div><div class="group">${segHTML("qt", [["url","Link/Teks"],["wa","WhatsApp"],["wifi","WiFi"]], "url")}</div>
+      <div class="hdr">Isi</div><div class="group">
+        <div class="field qf" data-q="url"><input id="q1" placeholder="https://… atau teks bebas" autocapitalize="off"></div>
+        <div class="field qf hide" data-q="wa"><input id="qw" inputmode="tel" placeholder="Nomor WA, mis. 0857…"></div>
+        <div class="field qf hide" data-q="wa" style="border-top:.5px solid var(--sep)"><input id="qwm" placeholder="Pesan otomatis (opsional)"></div>
+        <div class="field qf hide" data-q="wifi"><input id="qs" placeholder="Nama WiFi (SSID)" autocapitalize="off"></div>
+        <div class="field qf hide" data-q="wifi" style="border-top:.5px solid var(--sep)"><input id="qp" placeholder="Password WiFi" autocapitalize="off"></div></div>
+      <div class="hdr">QR Code</div><div class="group"><div id="qrBox"><span style="color:#8a8a8e">QR muncul di sini</span></div></div>
+      <button class="btn" id="qsave" type="button" disabled>Simpan PNG</button>
+      <p class="foot">QR bisa dicetak di kartu nama, poster acara, absensi kelas, atau menu kafe.</p>`,
+    bind(){ const root = $("#main"); let type = "url";
+      const content = () => type === "wa" ? ($("#qw").value.replace(/\D/g, "").replace(/^0/, "62") ? `https://wa.me/${$("#qw").value.replace(/\D/g, "").replace(/^0/, "62")}${$("#qwm").value ? "?text=" + encodeURIComponent($("#qwm").value) : ""}` : "")
+        : type === "wifi" ? ($("#qs").value ? `WIFI:T:WPA;S:${$("#qs").value.replace(/([\\;,:"])/g, "\\$1")};P:${$("#qp").value.replace(/([\\;,:"])/g, "\\$1")};;` : "")
+        : $("#q1").value.trim();
+      const draw = () => { const s = content(), box = $("#qrBox"); box.innerHTML = "";
+        if(!s){ box.innerHTML = '<span style="color:#8a8a8e">QR muncul di sini</span>'; $("#qsave").disabled = true; return; }
+        if(!window.QRCode){ box.innerHTML = '<span style="color:#8a8a8e">Memuat pembuat QR… coba lagi sebentar.</span>'; return; }
+        new QRCode(box, {text:s, width:512, height:512, correctLevel:QRCode.CorrectLevel.M}); $("#qsave").disabled = false; };
+      bindSegs(root, () => { type = segVal(root, "qt"); root.querySelectorAll(".qf").forEach(f => f.classList.toggle("hide", f.dataset.q !== type)); draw(); });
+      root.querySelectorAll(".qf input").forEach(i => i.oninput = draw);
+      $("#qsave").onclick = () => { const c = $("#qrBox canvas"); if(!c) return;
+        const o = document.createElement("canvas"), p = 32; o.width = c.width + p * 2; o.height = c.height + p * 2;
+        const g = o.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, o.width, o.height); g.drawImage(c, p, p);
+        o.toBlob(b => saveBlob(b, "SatSet_QR.png")); };
+      addEventListener("load", draw, {once:true}); }
+  },
+  sign:{
+    html:() => `<div class="hdr">Tanda tangan di kotak</div><div class="group"><canvas class="sig" id="sg"></canvas></div>
+      <div class="hdr">Warna tinta</div><div class="group">${segHTML("ink", [["#111111","Hitam"],["#0b3d91","Biru"]], "#111111")}</div>
+      <div class="group" style="margin-top:16px"><button class="cell" id="sgclr" type="button"><span class="grow" style="color:var(--red)">Hapus & ulangi</span></button></div>
+      <button class="btn" id="sgsave" type="button">Simpan PNG Transparan</button>
+      <p class="foot">PNG transparan bisa ditempel di Word, PDF (Markup di iPhone), atau surat lamaran. Pakai jari atau Apple Pencil.</p>`,
+    bind(){ const c = $("#sg"), g = c.getContext("2d"), root = $("#main"); let drawing = false, last = null, dirty = false;
+      const fit = () => { const r = c.getBoundingClientRect(), d = devicePixelRatio || 1; c.width = r.width * d; c.height = r.height * d; g.scale(d, d); g.lineCap = g.lineJoin = "round"; };
+      fit(); bindSegs(root);
+      const pt = e => { const r = c.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top, e.pressure || .5]; };
+      c.onpointerdown = e => { drawing = true; last = pt(e); c.setPointerCapture(e.pointerId); };
+      c.onpointermove = e => { if(!drawing) return; const p = pt(e); g.strokeStyle = segVal(root, "ink"); g.lineWidth = 1.6 + p[2] * 2.4;
+        g.beginPath(); g.moveTo(last[0], last[1]); g.lineTo(p[0], p[1]); g.stroke(); last = p; dirty = true; };
+      c.onpointerup = c.onpointercancel = () => drawing = false;
+      $("#sgclr").onclick = () => { g.clearRect(0, 0, c.width, c.height); dirty = false; };
+      $("#sgsave").onclick = () => { if(!dirty) return; c.toBlob(b => saveBlob(b, "SatSet_tanda_tangan.png")); }; }
+  },
+  ipk:{
+    html:() => `<div class="hdr">Mata kuliah · SKS · Nilai</div><div class="group" id="rows"></div>
+      <div class="group" style="margin-top:8px"><button class="cell" id="add" type="button"><span class="grow" style="color:var(--blue)">+ Tambah mata kuliah</span></button></div>
+      <div class="hdr">Hasil</div><div class="group"><div class="big" id="ip">0,00</div><div class="bigsub" id="ipsub">Isi SKS dan nilai</div></div>
+      <p class="foot">Bobot: A=4 · AB=3,5 · B=3 · BC=2,5 · C=2 · D=1 · E=0. Data tersimpan di HP-mu saja.</p>`,
+    bind(){ const G = [["A",4],["AB",3.5],["B",3],["BC",2.5],["C",2],["D",1],["E",0]];
+      let rows = store.get("ipk", [{n:"",s:3,g:"A"},{n:"",s:2,g:"B"},{n:"",s:3,g:"AB"}]);
+      const draw = () => { $("#rows").innerHTML = rows.map((r, i) => `<div class="ipk"><input data-k="n" data-i="${i}" value="${esc(r.n)}" placeholder="Mata kuliah ${i + 1}" aria-label="Nama mata kuliah">
+          <input data-k="s" data-i="${i}" type="number" inputmode="numeric" min="0" max="24" value="${esc(r.s)}" aria-label="SKS">
+          <select data-k="g" data-i="${i}" aria-label="Nilai">${G.map(([k]) => `<option${k === r.g ? " selected" : ""}>${k}</option>`).join("")}</select>
+          <button class="mini red" data-del="${i}" type="button" aria-label="Hapus">✕</button></div>`).join(""); calc(); };
+      const calc = () => { let sks = 0, pt = 0; for(const r of rows){ const s = +r.s || 0; sks += s; pt += s * (G.find(g => g[0] === r.g) || [0, 0])[1]; }
+        const ip = sks ? pt / sks : 0; $("#ip").textContent = ip.toFixed(2).replace(".", ",");
+        $("#ipsub").textContent = sks ? `${sks} SKS · ${ip >= 3.51 ? "Cumlaude (dengan pujian)" : ip >= 3.01 ? "Sangat memuaskan" : ip >= 2.76 ? "Memuaskan" : "Perlu ditingkatkan"}` : "Isi SKS dan nilai";
+        store.set("ipk", rows); };
+      $("#rows").oninput = $("#rows").onchange = e => { const el = e.target; if(el.dataset.i === undefined) return; rows[+el.dataset.i][el.dataset.k] = el.value; calc(); };
+      $("#rows").onclick = e => { const b = e.target.closest("[data-del]"); if(b){ rows.splice(+b.dataset.del, 1); draw(); } };
+      $("#add").onclick = () => { rows.push({n:"", s:2, g:"A"}); draw(); };
+      draw(); }
+  },
+  pass:{
+    html:() => `<div class="group"><div class="mono" id="pw"></div></div>
+      <div class="hdr">Panjang</div><div class="group"><div class="range"><input type="range" id="len" min="8" max="40" value="16"><output id="lenv">16</output></div></div>
+      <div class="hdr">Isi</div><div class="group">${[["up","Huruf besar (A-Z)"],["low","Huruf kecil (a-z)"],["num","Angka (0-9)"],["sym","Simbol (!@#$)"],["amb","Hindari yang mirip (O/0, l/1)"]]
+        .map(([k, l], i) => `<button class="cell sel" data-o="${k}" type="button"><span class="grow">${l}</span><span class="chk">✓</span></button>`).join("")}</div>
+      <button class="btn" id="gen" type="button">Buat Baru</button><button class="btn sec" id="cpy" type="button">Salin Password</button>
+      <p class="foot">Dibuat acak di HP-mu memakai generator kriptografi. Tidak dikirim ke mana pun.</p>`,
+    bind(){ const opts = () => Object.fromEntries([...$("#main").querySelectorAll("[data-o]")].map(b => [b.dataset.o, b.classList.contains("sel")]));
+      const gen = () => { const o = opts(); let set = (o.up ? "ABCDEFGHJKLMNPQRSTUVWXYZ" + (o.amb ? "" : "IO") : "") + (o.low ? "abcdefghijkmnopqrstuvwxyz" + (o.amb ? "" : "l") : "")
+          + (o.num ? "23456789" + (o.amb ? "" : "01") : "") + (o.sym ? "!@#$%^&*-_=+?" : "");
+        if(!set) set = "abcdefghijkmnopqrstuvwxyz";
+        const n = +$("#len").value, r = new Uint32Array(n); crypto.getRandomValues(r);
+        $("#pw").textContent = [...r].map(x => set[x % set.length]).join(""); };
+      $("#len").oninput = () => { $("#lenv").textContent = $("#len").value; gen(); };
+      $("#main").querySelectorAll("[data-o]").forEach(b => b.onclick = () => { b.classList.toggle("sel"); gen(); });
+      $("#gen").onclick = gen; $("#cpy").onclick = e => copyText($("#pw").textContent, e.target); gen(); }
+  },
+
+  // ---------- FOTO GRID: kolase & pecah grid Instagram
+  grid:{
+    html:() => `<div class="group">${segHTML("gmode", [["collage","Kolase"],["split","Pecah Grid IG"]], "collage")}</div>
+      <div class="hdr" id="ghdr">Foto (2–9)</div>
+      <div class="group"><label class="drop"><b id="gpick">Pilih Foto</b><span id="ghint">Bisa pilih banyak sekaligus</span>
+        <input type="file" id="gfile" accept="${IMG}" multiple hidden></label></div>
+      <div id="glist"></div>
+      <div id="gcol">
+        <div class="hdr">Kolom</div><div class="group">${segHTML("cols", [["1","1"],["2","2"],["3","3"]], "2")}</div>
+        <div class="hdr">Ukuran hasil</div><div class="group">${segHTML("ratio", [["1:1","1:1 Feed"],["4:5","4:5 Feed"],["9:16","9:16 Story"],["3:2","3:2 Lanskap"]], "4:5")}</div>
+        <div class="hdr">Jarak & sudut</div><div class="group">
+          <div class="range"><span style="width:56px">Jarak</span><input type="range" id="gap" min="0" max="60" value="16"><output>16</output></div>
+          <div class="range" style="border-top:.5px solid var(--sep)"><span style="width:56px">Sudut</span><input type="range" id="rad" min="0" max="60" value="0"><output>0</output></div></div>
+        <div class="hdr">Warna latar</div><div class="group"><div class="eopt" style="padding:6px 16px 12px">${["#ffffff","#000000","#f2f2f7","#f5e6d3","#007aff","#ff2d55"].map((c, i) => `<button type="button" class="dot${i ? "" : " on"}" data-bg="${c}" style="background:${c}" aria-label="Latar ${c}"></button>`).join("")}</div></div>
+      </div>
+      <div id="gsplit" class="hide">
+        <div class="hdr">Grid</div><div class="group">${segHTML("grid", [["3x1","3×1 Panorama"],["3x2","3×2"],["3x3","3×3"],["3x4","3×4"]], "3x3")}</div>
+        <div class="hdr">Bentuk tiap kotak</div><div class="group">${segHTML("tile", [["1:1","1:1"],["4:5","4:5"],["3:4","3:4 (grid profil baru)"]], "4:5")}</div>
+        <div class="hdr">Posisi potong</div><div class="group">${segHTML("focus", [["0","Atas/Kiri"],["0.5","Tengah"],["1","Bawah/Kanan"]], "0.5")}</div>
+      </div>
+      <div class="hdr">Pratinjau</div><div class="group" style="padding:12px;background:var(--card2)"><canvas id="gcv" style="display:block;width:100%;height:auto;border-radius:4px"></canvas>
+        <p class="foot" id="gnote" style="margin:8px 4px 0;text-align:center">Pilih foto dulu</p></div>
+      <button class="btn" id="gsave" type="button" disabled>Buat</button>
+      <div class="toast" id="msg"></div><div id="out"></div>`,
+    bind(){
+      const root = $("#main"), cv = $("#gcv"), g = cv.getContext("2d");
+      let mode = "collage", imgs = [], bg = "#ffffff";
+      const val = n => segVal(root, n);
+      const R = r => { const [a, b] = r.split(":").map(Number); return a / b; };
+      function cover(ctx, im, x, y, w, h, fx = .5, fy = .5){
+        const s = Math.max(w / im.width, h / im.height), sw = w / s, sh = h / s;
+        ctx.drawImage(im, (im.width - sw) * fx, (im.height - sh) * fy, sw, sh, x, y, w, h);
+      }
+      function rr(ctx, x, y, w, h, r){ ctx.beginPath(); if(ctx.roundRect && r) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+      function collage(W){
+        const H = Math.round(W / R(val("ratio"))), cols = +val("cols"), k = W / 1080;
+        const gap = +$("#gap").value * k, rad = +$("#rad").value * k;
+        const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
+        x.fillStyle = bg; x.fillRect(0, 0, W, H);
+        const n = imgs.length, rows = Math.ceil(n / cols), rh = (H - gap * (rows + 1)) / rows;
+        let i = 0;
+        for(let r = 0; r < rows; r++){
+          const inRow = Math.min(cols, n - i), cw = (W - gap * (inRow + 1)) / inRow;
+          for(let j = 0; j < inRow; j++, i++){
+            const cx = gap + j * (cw + gap), cy = gap + r * (rh + gap);
+            x.save(); rr(x, cx, cy, cw, rh, rad); x.clip(); cover(x, imgs[i].im, cx, cy, cw, rh); x.restore();
+          }
+        }
+        return c;
+      }
+      function splitDims(){ const [cols, rows] = val("grid").split("x").map(Number), t = R(val("tile")); return {cols, rows, tw:1080, th:Math.round(1080 / t)}; }
+      function splitSource(){
+        const {cols, rows, tw, th} = splitDims(), W = cols * tw, H = rows * th, f = +val("focus");
+        const c = document.createElement("canvas"); c.width = W; c.height = H; cover(c.getContext("2d"), imgs[0].im, 0, 0, W, H, f, f); return c;
+      }
+      function draw(){
+        const ok = mode === "collage" ? imgs.length >= 2 : imgs.length >= 1;
+        $("#gsave").disabled = !ok;
+        if(!ok){ cv.width = 600; cv.height = 300; g.fillStyle = "#ddd"; g.fillRect(0, 0, 600, 300); $("#gnote").textContent = mode === "collage" ? "Pilih minimal 2 foto" : "Pilih 1 foto"; return; }
+        if(mode === "collage"){
+          const c = collage(720); cv.width = c.width; cv.height = c.height; g.drawImage(c, 0, 0);
+          $("#gnote").textContent = `${imgs.length} foto · hasil 1080×${Math.round(1080 / R(val("ratio")))} px`;
+        } else {
+          const {cols, rows, tw, th} = splitDims(), src = splitSource(), k = 720 / src.width;
+          cv.width = 720; cv.height = Math.round(src.height * k); g.drawImage(src, 0, 0, cv.width, cv.height);
+          g.strokeStyle = "#fff"; g.lineWidth = 3; g.font = "600 28px -apple-system,system-ui,sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
+          for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++){
+            const x = c * tw * k, y = r * th * k, w = tw * k, h = th * k, n = (rows - r - 1) * cols + (cols - c);
+            g.strokeRect(x, y, w, h); g.fillStyle = "#000a"; g.beginPath(); g.arc(x + w / 2, y + h / 2, 24, 0, 7); g.fill(); g.fillStyle = "#fff"; g.fillText(n, x + w / 2, y + h / 2 + 1);
+          }
+          $("#gnote").textContent = `${cols * rows} kotak ${tw}×${th} px · angka = urutan upload (mulai dari 1)`;
+        }
+      }
+      function list(){
+        const box = $("#glist");
+        if(mode !== "collage" || !imgs.length){ box.innerHTML = ""; return; }
+        box.innerHTML = `<div class="hdr">${imgs.length} foto · atur urutan</div><div class="group">${imgs.map((o, i) => `<div class="cell"><img class="tn" src="${o.url}" alt="">
+          <div class="grow"><div class="name">${esc(o.name)}</div></div>
+          <button class="mini" data-up="${i}" type="button" aria-label="Naik">↑</button><button class="mini" data-dn="${i}" type="button" aria-label="Turun">↓</button><button class="mini red" data-rm="${i}" type="button" aria-label="Hapus">✕</button></div>`).join("")}</div>`;
+        box.onclick = e => { const b = e.target.closest("button"); if(!b) return; const i = +(b.dataset.up ?? b.dataset.dn ?? b.dataset.rm);
+          if(b.dataset.rm !== undefined) imgs.splice(i, 1); else { const j = b.dataset.up !== undefined ? i - 1 : i + 1; if(j < 0 || j >= imgs.length) return; [imgs[i], imgs[j]] = [imgs[j], imgs[i]]; }
+          list(); draw(); };
+      }
+      bindSegs(root, () => {
+        const m = val("gmode");
+        if(m !== mode){ mode = m; if(mode === "split") imgs = imgs.slice(0, 1);
+          $("#gcol").classList.toggle("hide", mode !== "collage"); $("#gsplit").classList.toggle("hide", mode !== "split");
+          $("#ghdr").textContent = mode === "collage" ? "Foto (2–9)" : "Foto";
+          $("#ghint").textContent = mode === "collage" ? "Bisa pilih banyak sekaligus" : "1 foto, sebaiknya resolusi tinggi";
+          $("#gfile").multiple = mode === "collage"; $("#gsave").textContent = mode === "collage" ? "Buat Kolase" : "Pecah Jadi Grid";
+          results.length = 0; $("#out").innerHTML = ""; hideToast($("#msg")); list(); }
+        draw();
+      });
+      root.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => { r.nextElementSibling.textContent = r.value; draw(); });
+      root.querySelectorAll("[data-bg]").forEach(d => d.onclick = () => { bg = d.dataset.bg; root.querySelectorAll("[data-bg]").forEach(x => x.classList.toggle("on", x === d)); draw(); });
+      $("#gfile").onchange = async e => {
+        const fs = [...e.target.files]; e.target.value = "";
+        for(const f of fs){ try { imgs.push({im:await decode(f), name:f.name, url:URL.createObjectURL(f)}); } catch { toast($("#msg"), "err", f.name + " tidak bisa dibaca."); } }
+        if(mode === "split") imgs = imgs.slice(-1);
+        if(imgs.length > 9){ imgs = imgs.slice(0, 9); toast($("#msg"), "err", "Maksimal 9 foto untuk kolase."); }
+        list(); draw();
+      };
+      const toBlob = c => new Promise(r => c.toBlob(r, "image/jpeg", .92));
+      $("#gsave").onclick = async () => {
+        const m = $("#msg"); results.length = 0; $("#out").innerHTML = "";
+        toast(m, "info", "Membuat…");
+        if(mode === "collage"){ addResult(await toBlob(collage(1080)), "SatSet_kolase.jpg"); return toast(m, "ok", "Kolase siap. Ketuk Simpan."); }
+        const {cols, rows, tw, th} = splitDims(), src = splitSource();
+        for(let n = 1; n <= cols * rows; n++){
+          const idx = cols * rows - n, r = Math.floor(idx / cols), c = idx % cols;
+          const t = document.createElement("canvas"); t.width = tw; t.height = th;
+          t.getContext("2d").drawImage(src, c * tw, r * th, tw, th, 0, 0, tw, th);
+          addResult(await toBlob(t), `SatSet_grid_${String(n).padStart(2, "0")}.jpg`);
+        }
+        toast(m, "ok", `${cols * rows} foto siap. Upload ke Instagram mulai dari nomor 01, satu per satu.`);
+      };
+      draw();
+    }
+  },
+
+  // ---------- EDIT TXT
+  txt:{
+    html:() => `<div class="group">
+        <div class="field"><label for="fn">Nama file</label><input id="fn" placeholder="catatan" autocapitalize="off" style="text-align:right"></div>
+        <label class="cell" style="cursor:pointer;border-top:.5px solid var(--sep)"><span class="grow" style="color:var(--blue)">Buka file teks…</span><span class="val">TXT, MD, CSV, SRT, JSON</span>
+          <input type="file" id="tf" accept=".txt,.md,.csv,.srt,.vtt,.json,.html,.xml,.log,.ini,.yaml,.yml,text/*" hidden></label>
+        <button class="cell" id="tnew" type="button" style="border-top:.5px solid var(--sep)"><span class="grow" style="color:var(--red)">Dokumen baru</span></button></div>
+      <div class="hdr">Isi</div><div class="group"><textarea id="tx" class="tx" spellcheck="false" placeholder="Mulai ketik di sini…"></textarea></div>
+      <p class="foot" id="txst"></p>
+      <div class="hdr">Cari & ganti</div><div class="group">
+        <div class="field"><input id="tfind" placeholder="Cari kata…" autocapitalize="off"><span class="val" id="tfc"></span></div>
+        <div class="field" style="border-top:.5px solid var(--sep)"><input id="trep" placeholder="Ganti dengan…" autocapitalize="off"></div>
+        <button class="cell" id="tcase" type="button" style="border-top:.5px solid var(--sep)"><span class="grow">Bedakan huruf besar/kecil</span><span class="chk">✓</span></button></div>
+      <button class="btn sec" id="trun" type="button">Ganti Semua</button>
+      <div class="hdr">Simpan sebagai</div><div class="group">${segHTML("tfmt", [["txt","TXT"],["md","Markdown"],["pdf","PDF"],["docx","Word"]], "txt")}</div>
+      <button class="btn" id="tsave" type="button">Simpan</button>
+      <div class="prog" id="bar"><i></i></div><div class="toast" id="msg"></div><div id="out"></div>
+      <p class="foot">Draf tersimpan otomatis di HP-mu. Semua dibuat langsung di HP.</p>`,
+    bind(){
+      const tx = $("#tx"), fn = $("#fn"), d = store.get("txt", {name:"catatan", text:""});
+      tx.value = d.text; fn.value = d.name;
+      const keep = () => store.set("txt", {name:fn.value, text:tx.value});
+      const re = () => { const q = $("#tfind").value; if(!q) return null;
+        return new RegExp(q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "g" + ($("#tcase").classList.contains("sel") ? "" : "i")); };
+      const stat = () => { const s = tx.value, r = re();
+        $("#txst").textContent = `${(s.match(/[^\s]+/g) || []).length} kata · ${s ? s.split("\n").length : 0} baris · ${s.length} karakter`;
+        $("#tfc").textContent = r ? (s.match(r) || []).length + " ditemukan" : ""; keep(); };
+      tx.oninput = fn.oninput = stat; $("#tfind").oninput = stat;
+      $("#tcase").onclick = e => { e.currentTarget.classList.toggle("sel"); stat(); };
+      $("#tf").onchange = async e => { const f = e.target.files[0]; if(!f) return;
+        if(f.size > 5 * 1048576) return toast($("#msg"), "err", "File teks maksimal 5 MB.");
+        tx.value = await f.text(); fn.value = f.name.replace(/\.[^.]+$/, ""); e.target.value = ""; stat(); hideToast($("#msg")); };
+      let armed = false;
+      $("#tnew").onclick = e => { const b = e.currentTarget.querySelector(".grow");
+        if(!armed && tx.value){ armed = true; b.textContent = "Ketuk lagi untuk mengosongkan"; setTimeout(() => { armed = false; b.textContent = "Dokumen baru"; }, 3000); return; }
+        tx.value = ""; fn.value = "catatan"; armed = false; b.textContent = "Dokumen baru"; stat(); tx.focus(); };
+      $("#trun").onclick = () => { const r = re(); if(!r) return toast($("#msg"), "err", "Isi dulu kata yang dicari.");
+        const n = (tx.value.match(r) || []).length; tx.value = tx.value.replace(r, () => $("#trep").value); stat();
+        toast($("#msg"), n ? "ok" : "err", n ? `${n} kata diganti.` : "Kata tidak ditemukan."); };
+      bindSegs($("#main"));
+      $("#tsave").onclick = async () => {
+        const fmt = segVal($("#main"), "tfmt"), name = (fn.value.trim() || "catatan").replace(/[\\/:*?"<>|]+/g, "_"), m = $("#msg");
+        if(!tx.value.trim()) return toast(m, "err", "Dokumen masih kosong.");
+        results.length = 0; $("#out").innerHTML = "";
+        if(fmt === "txt" || fmt === "md"){ addResult(new Blob([tx.value], {type:"text/plain;charset=utf-8"}), `${name}.${fmt}`); return toast(m, "ok", "Siap. Ketuk Simpan."); }
+        const b = $("#tsave"); b.disabled = true; prog($("#bar"), -1); toast(m, "info", "Membuat " + (fmt === "pdf" ? "PDF" : "Word") + "…");
+        try { const fd = new FormData(); fd.append("file", new File([tx.value], name + ".txt", {type:"text/plain"})); fd.append("to", fmt);
+          const out = await LOCAL["/api/doc/convert"]([fd.get("file")], {to:fmt});
+          addResult(out.blob, out.name); toast(m, "ok", "Selesai. Ketuk Simpan.");
+        } catch(e){ toast(m, "err", netErr(e)); } finally { b.disabled = false; prog($("#bar"), null); }
+      };
+      stat();
+    }
+  },
+
+  // ---------- EDIT PDF
+  pdfedit:{
+    html:() => `<div class="hdr">File PDF</div><div class="group"><label class="drop" id="drop"><b>Pilih PDF</b><span>Maks 200 MB · maks 150 halaman</span>
+        <input type="file" id="file" accept=".pdf,application/pdf" hidden></label></div>
+      <div class="toast" id="lmsg"></div>
+      <div id="ed" class="hide">
+        <div class="etb">${segHTML("mode", [["select","Pilih"],["text","Teks"],["erase","Tutup"],["highlight","Stabilo"],["ink","Coret"],["image","Gambar"]], "text").replace('class="segwrap"', 'class=""')}
+          <div class="eopt" id="eopt"></div></div>
+        <div class="pages" id="pages"></div>
+        <div class="group" style="margin-top:16px"><button class="cell" id="undo" type="button"><span class="grow" style="color:var(--blue)">↶ Batalkan objek terakhir</span><span class="val" id="cnt">0 objek</span></button></div>
+        <button class="btn" id="save" type="button">Simpan PDF</button>
+        <div class="prog" id="bar"><i></i></div><div class="toast" id="msg"></div><div id="out"></div>
+      </div>
+      <input type="file" id="imgin" accept="image/*" hidden>`,
+    bind(){
+      const LIB = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/";
+      const TC = ["#000000","#0a3d91","#c4161c","#1e7d32"], HC = ["#ffd60a","#7ee787","#ff8fab","#7cc7ff"], IC = ["#ff3b30","#000000","#0a84ff"];
+      const st = {mode:"text", size:"12", color:"#000000", bold:false, hl:"#ffd60a", ink:"#ff3b30", iw:"0.004"};
+      let pdfFile = null, pages = [], objs = [], hist = [], sel = null, uid = 0, tap = null;
+      const W = 1000, find = id => objs.find(o => o.id === +id);
+      const loadLib = () => window.pdfjsLib ? Promise.resolve(pdfjsLib) : new Promise((res, rej) => {
+        const s = document.createElement("script"); s.src = LIB + "pdf.min.js";
+        s.onload = () => { pdfjsLib.GlobalWorkerOptions.workerSrc = LIB + "pdf.worker.min.js"; res(pdfjsLib); };
+        s.onerror = () => rej(new Error("Gagal memuat pembaca PDF. Cek koneksi internet."));
+        document.head.appendChild(s); });
+
+      // --- opsi alat
+      const dots = (list, cur, key) => list.map(c => `<button type="button" class="dot${c === cur ? " on" : ""}" data-c="${c}" data-key="${key}" style="background:${c}" aria-label="Warna ${c}"></button>`).join("");
+      function opts(){
+        const e = $("#eopt"), m = st.mode;
+        e.innerHTML = m === "text" ? `<div class="seg" data-seg="size" style="flex:1;min-width:150px">${["10","12","14","18","24"].map(v => `<button type="button" data-v="${v}" class="${v === st.size ? "on" : ""}">${v}</button>`).join("")}</div>
+            ${dots(TC, st.color, "color")}<button type="button" class="tgl${st.bold ? " on" : ""}" id="bold">B</button>`
+          : m === "highlight" ? `Warna ${dots(HC, st.hl, "hl")} <span>· seret di atas tulisan</span>`
+          : m === "ink" ? `${dots(IC, st.ink, "ink")}<div class="seg" data-seg="iw" style="flex:1;min-width:150px">${[["0.002","Tipis"],["0.004","Sedang"],["0.008","Tebal"]].map(([v, l]) => `<button type="button" data-v="${v}" class="${v === st.iw ? "on" : ""}">${l}</button>`).join("")}</div>`
+          : m === "erase" ? "Seret kotak putih untuk menutup tulisan/gambar, lalu ketik teks baru di atasnya kalau perlu."
+          : m === "image" ? `<button class="pill" type="button" id="pickimg">Pilih gambar / TTD</button><span>PNG transparan dari alat Tanda Tangan cocok di sini</span>`
+          : "Ketuk objek untuk memilih. Seret ✥ untuk memindah, ◢ ubah ukuran, ✕ hapus. Geser halaman untuk scroll.";
+        e.onclick = ev => {
+          const d = ev.target.closest(".dot"), sb = ev.target.closest("[data-seg] button");
+          if(d){ st[d.dataset.key] = d.dataset.c; if(sel && sel.type === "text" && d.dataset.key === "color"){ sel.color = d.dataset.c; restyle(sel); } opts(); }
+          else if(sb){ const k = sb.parentElement.dataset.seg; st[k] = sb.dataset.v; if(k === "size" && sel && sel.type === "text"){ sel.size = +st.size; restyle(sel); } opts(); }
+          else if(ev.target.id === "bold"){ st.bold = !st.bold; if(sel && sel.type === "text"){ sel.bold = st.bold; restyle(sel); } opts(); }
+          else if(ev.target.id === "pickimg") $("#imgin").click();
+        };
+      }
+      bindSegs($(".etb"), () => {
+        st.mode = segVal($(".etb"), "mode"); select(null); opts();
+        pages.forEach(P => P.ov.classList.toggle("draw", ["erase","highlight","ink"].includes(st.mode)));
+        if(st.mode === "image") $("#imgin").click();
+      });
+      opts();
+
+      // --- objek
+      function place(o){
+        const s = o.el.style;
+        if(o.type === "ink"){
+          const P = pages[o.page], H = W * P.hPt / P.wPt, pad = o.width / 2 + 0.002;
+          const xs = o.points.map(p => p[0]), ys = o.points.map(p => p[1]);
+          const bx = Math.min(...xs) - pad, by = Math.min(...ys) - pad * P.wPt / P.hPt, bw = Math.max(...xs) - bx + pad, bh = Math.max(...ys) - by + pad * P.wPt / P.hPt;
+          Object.assign(s, {left:bx * 100 + "%", top:by * 100 + "%", width:bw * 100 + "%", height:bh * 100 + "%"});
+          o.el.querySelector(".in").innerHTML = `<svg viewBox="${bx * W} ${by * H} ${bw * W} ${bh * H}" preserveAspectRatio="none"><path d="M${o.points.map(p => (p[0] * W).toFixed(1) + " " + (p[1] * H).toFixed(1)).join("L")}" fill="none" stroke="${o.color}" stroke-width="${o.width * W}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+          return;
+        }
+        s.left = o.x * 100 + "%"; s.top = o.y * 100 + "%";
+        if(o.type !== "text"){ s.width = o.w * 100 + "%"; s.height = o.h * 100 + "%"; }
+      }
+      function restyle(o){ const i = o.el.querySelector(".in");
+        Object.assign(i.style, {fontSize:`calc(var(--k) * ${o.size}px)`, color:o.color, fontWeight:o.bold ? 700 : 400}); }
+      function make(o){
+        const el = document.createElement("div"); el.className = "ob " + o.type; el.dataset.id = o.id; o.el = el;
+        const i = document.createElement("div"); i.className = "in"; el.appendChild(i);
+        if(o.type === "text"){
+          try { i.contentEditable = "plaintext-only"; } catch {} if(i.contentEditable !== "plaintext-only") i.contentEditable = "true";
+          i.spellcheck = false; i.textContent = o.text; restyle(o);
+          i.oninput = () => { o.text = i.innerText.replace(/\n$/, ""); };
+          i.onfocus = () => select(o);
+          i.onblur = () => setTimeout(() => { if(!o.text.trim() && objs.includes(o)) remove(o); }, 150);
+        } else if(o.type === "highlight") i.style.background = o.color;
+        else if(o.type === "image") i.innerHTML = `<img src="${o.data}" alt="">`;
+        place(o); return el;
+      }
+      function add(o){ o.id = ++uid; objs.push(o); hist.push(o); pages[o.page].ov.appendChild(make(o)); count(); return o; }
+      function remove(o){ objs = objs.filter(x => x !== o); o.el.remove(); if(sel === o) sel = null; count(); }
+      const count = () => $("#cnt").textContent = objs.length + " objek";
+      function select(o){
+        if(sel && sel !== o && sel.el){ sel.el.classList.remove("sel"); sel.el.querySelectorAll(".hd").forEach(h => h.remove()); }
+        if(sel === o) return; sel = o; if(!o) return;
+        o.el.classList.add("sel");
+        const hs = [["move","✥"],["del","✕"]].concat(["erase","highlight","image"].includes(o.type) ? [["size","◢"]] : []);
+        for(const [h, c] of hs){ const d = document.createElement("div"); d.className = "hd"; d.dataset.h = h; d.textContent = c; d.contentEditable = "false"; o.el.appendChild(d); }
+        if(o.type === "text"){ st.size = String(o.size); st.color = o.color; st.bold = o.bold; if(st.mode === "text") opts(); }
+      }
+      $("#undo").onclick = () => { while(hist.length){ const o = hist.pop(); if(objs.includes(o)){ remove(o); break; } } };
+
+      // --- interaksi sentuh/mouse
+      const norm = (P, e) => { const r = P.ov.getBoundingClientRect(); return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height]; };
+      const clamp = v => Math.max(0, Math.min(1, v));
+      function drag(e, P, onMove, onUp){
+        const mv = ev => onMove(norm(P, ev)), up = ev => { removeEventListener("pointermove", mv); removeEventListener("pointerup", up); removeEventListener("pointercancel", up); onUp && onUp(ev.type === "pointercancel"); };
+        addEventListener("pointermove", mv); addEventListener("pointerup", up); addEventListener("pointercancel", up);
+      }
+      function onDown(e, pi){
+        const P = pages[pi], hd = e.target.closest(".hd"), ob = e.target.closest(".ob");
+        if(hd){ e.preventDefault(); const o = find(hd.parentElement.dataset.id);
+          if(hd.dataset.h === "del") return remove(o);
+          const [sx, sy] = norm(P, e), O = JSON.parse(JSON.stringify({x:o.x, y:o.y, w:o.w, h:o.h, points:o.points}));
+          return drag(e, P, ([x, y]) => { const dx = x - sx, dy = y - sy;
+            if(hd.dataset.h === "move"){ if(o.type === "ink") o.points = O.points.map(p => [p[0] + dx, p[1] + dy]); else { o.x = O.x + dx; o.y = O.y + dy; } }
+            else { o.w = Math.max(.02, O.w + dx); o.h = o.type === "image" ? o.w * O.h / O.w : Math.max(.008, O.h + dy); }
+            place(o); });
+        }
+        if(ob){ const o = find(ob.dataset.id); select(o);
+          if(o.type !== "text"){ e.preventDefault(); const [sx, sy] = norm(P, e), O = {x:o.x, y:o.y, points:o.points};
+            drag(e, P, ([x, y]) => { const dx = x - sx, dy = y - sy; if(o.type === "ink") o.points = O.points.map(p => [p[0] + dx, p[1] + dy]); else { o.x = O.x + dx; o.y = O.y + dy; } place(o); }); }
+          return;
+        }
+        if(document.activeElement && document.activeElement.isContentEditable) document.activeElement.blur();
+        select(null);
+        const [sx, sy] = norm(P, e), m = st.mode;
+        if(m === "erase" || m === "highlight"){
+          e.preventDefault(); const t = document.createElement("div"); t.className = "tmp"; P.ov.appendChild(t);
+          let box = null;
+          drag(e, P, ([x, y]) => { x = clamp(x); y = clamp(y); box = {x:Math.min(sx, x), y:Math.min(sy, y), w:Math.abs(x - sx), h:Math.abs(y - sy)};
+              Object.assign(t.style, {left:box.x * 100 + "%", top:box.y * 100 + "%", width:box.w * 100 + "%", height:box.h * 100 + "%"}); },
+            cancel => { t.remove(); if(!cancel && box && box.w > .01 && box.h > .006) add({type:m, page:pi, ...box, color:m === "highlight" ? st.hl : "#ffffff"}); });
+        } else if(m === "ink"){
+          e.preventDefault(); const o = add({type:"ink", page:pi, points:[[sx, sy]], color:st.ink, width:+st.iw});
+          drag(e, P, ([x, y]) => { o.points.push([clamp(x), clamp(y)]); place(o); }, () => { if(o.points.length < 2) remove(o); });
+        } else tap = {pi, sx, sy, cx:e.clientX, cy:e.clientY};
+      }
+      addEventListener("pointerup", e => {
+        if(!tap) return; const t = tap; tap = null;
+        if(st.mode !== "text" || Math.hypot(e.clientX - t.cx, e.clientY - t.cy) > 8) return;
+        const o = add({type:"text", page:t.pi, x:t.sx, y:Math.max(0, t.sy - .012), text:"", size:+st.size, color:st.color, bold:st.bold});
+        select(o); o.el.querySelector(".in").focus();  // langsung, agar keyboard iPhone muncul
+      });
+      addEventListener("pointercancel", () => tap = null);
+
+      // --- gambar / TTD
+      $("#imgin").onchange = async e => {
+        const f = e.target.files[0]; e.target.value = ""; if(!f || !pages.length) return;
+        try {
+          const src = await decode(f), k = Math.min(1, 1400 / Math.max(src.width, src.height));
+          const c = document.createElement("canvas"); c.width = Math.round(src.width * k); c.height = Math.round(src.height * k);
+          c.getContext("2d").drawImage(src, 0, 0, c.width, c.height);
+          const data = c.toDataURL(f.type === "image/jpeg" ? "image/jpeg" : "image/png", .9);
+          let pi = 0, best = -1;
+          pages.forEach((P, i) => { const r = P.div.getBoundingClientRect(), v = Math.min(r.bottom, innerHeight) - Math.max(r.top, 0); if(v > best){ best = v; pi = i; } });
+          const P = pages[pi], w = .35, h = w * (c.height / c.width) * (P.wPt / P.hPt);
+          const o = add({type:"image", page:pi, x:(1 - w) / 2, y:Math.max(0, .45 - h / 2), w, h, data});
+          select(o);
+        } catch { toast($("#lmsg"), "err", "Gambar tidak bisa dibaca."); }
+      };
+
+
+      // --- buka PDF
+      const fit = () => pages.forEach(P => P.div.style.setProperty("--k", P.div.clientWidth / P.wPt));
+      const ro = new ResizeObserver(fit);
+      $("#file").onchange = async e => {
+        const f = e.target.files[0]; e.target.value = ""; if(!f) return;
+        const lm = $("#lmsg");
+        if(f.size > 200 * 1048576) return toast(lm, "err", "PDF maksimal 200 MB.");
+        toast(lm, "info", "Membuka PDF…");
+        try {
+          const lib = await loadLib();
+          const doc = await lib.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise;
+          pdfFile = f; pages = []; objs = []; hist = []; sel = null; count();
+          const box = $("#pages"); box.innerHTML = ""; $("#ed").classList.remove("hide"); results.length = 0; $("#out").innerHTML = "";
+          $("#drop b").textContent = f.name; ro.disconnect();
+          const n = Math.min(doc.numPages, 150), dpr = Math.min(2, devicePixelRatio || 1);
+          for(let i = 1; i <= n; i++){
+            toast(lm, "info", `Menampilkan halaman ${i} dari ${n}…`);
+            const pg = await doc.getPage(i), v1 = pg.getViewport({scale:1});
+            const div = document.createElement("div"); div.className = "pg";
+            div.innerHTML = `<canvas></canvas><div class="ov${["erase","highlight","ink"].includes(st.mode) ? " draw" : ""}"></div><span class="pgno">${i} / ${doc.numPages}</span>`;
+            box.appendChild(div);
+            const cv = div.querySelector("canvas"), scale = (box.clientWidth || 360) * dpr / v1.width, vp = pg.getViewport({scale});
+            cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+            await pg.render({canvasContext:cv.getContext("2d"), viewport:vp}).promise;
+            const P = {div, ov:div.querySelector(".ov"), wPt:v1.width, hPt:v1.height}; pages.push(P);
+            P.ov.addEventListener("pointerdown", ev => onDown(ev, i - 1));
+            ro.observe(div);
+          }
+          fit();
+          toast(lm, doc.numPages > n ? "err" : "ok", doc.numPages > n ? `Hanya ${n} halaman pertama yang ditampilkan.` : "Pilih alat di atas, lalu ketuk halaman.");
+        } catch(err){
+          toast(lm, "err", err && err.name === "PasswordException" ? "PDF ini dikunci password. Buka kuncinya dulu di alat 'Buka Kunci PDF'." : (err.message || "PDF tidak bisa dibuka."));
+        }
+      };
+
+      // --- simpan
+      $("#save").onclick = async () => {
+        const m = $("#msg"), b = $("#save");
+        if(document.activeElement && document.activeElement.isContentEditable) document.activeElement.blur();
+        const ops = objs.filter(o => o.type !== "text" || o.text.trim()).map(({el, id, ...o}) => o);
+        if(!ops.length) return toast(m, "err", "Belum ada perubahan. Tambahkan teks, coretan, atau stabilo dulu.");
+        b.disabled = true; prog($("#bar"), -1); toast(m, "info", "Menyimpan PDF…"); results.length = 0; $("#out").innerHTML = "";
+        try {
+          addResult(await pdfEdit(pdfFile, ops), "SatSet_" + stem(pdfFile.name) + "_edit.pdf");
+          toast(m, "ok", "Selesai. Ketuk Simpan.");
+        } catch(e){ toast(m, "err", netErr(e)); } finally { b.disabled = false; prog($("#bar"), null); }
+      };
+    }
+  }
+};
+
+// ---------- MESIN LOKAL: semua proses berjalan di browser HP (tanpa server)
+const CDN = "https://cdnjs.cloudflare.com/ajax/libs/";
+const _libs = {};
+function lib(url, name){
+  if(window[name]) return Promise.resolve(window[name]);
+  return _libs[url] || (_libs[url] = new Promise((res, rej) => {
+    const s = document.createElement("script"); s.src = url;
+    s.onload = () => window[name] ? res(window[name]) : rej(new Error("Gagal memuat komponen. Coba lagi."));
+    s.onerror = () => { delete _libs[url]; rej(new Error("Gagal memuat komponen. Cek koneksi internet.")); };
+    document.head.appendChild(s);
+  }));
+}
+const PDFL = () => lib(CDN + "pdf-lib/1.17.1/pdf-lib.min.js", "PDFLib");
+const ZIPL = () => lib(CDN + "jszip/3.10.1/jszip.min.js", "JSZip");
+const PDFJS = () => lib(CDN + "pdf.js/3.11.174/pdf.min.js", "pdfjsLib").then(l => { l.GlobalWorkerOptions.workerSrc = CDN + "pdf.js/3.11.174/pdf.worker.min.js"; return l; });
+const PDFMIME = "application/pdf";
+const res = (blob, name, before) => ({blob, name:"SatSet_" + name, before});
+const pad3 = n => String(n).padStart(3, "0");
+const WIN = "€‚ƒ„…†‡ˆ‰Š‹ŒŽ‘’“”•–—˜™š›œžŸ";
+const safe = s => String(s).replace(/[^\n\t\x20-\x7e\xa0-\xff]/gu, ch => WIN.includes(ch) ? ch : "?");
+const canvasBlob = (c, type, q) => new Promise((ok, no) => c.toBlob(b => b ? ok(b) : no(new Error("Gagal membuat gambar (mungkin terlalu besar).")), type, q));
+const bytesOf = async b => new Uint8Array(await b.arrayBuffer());
+const imgOf = f => decode(f).catch(() => { throw new Error(f.name + " tidak bisa dibaca sebagai gambar."); });
+
+function parsePages(spec, total){
+  spec = String(spec || "").replace(/\s/g, "");
+  if(!spec) return [...Array(total).keys()];
+  const out = [];
+  for(const part of spec.split(",")){
+    if(!part) continue;
+    const m = /^(\d+)(?:-(\d+))?$/.exec(part);
+    if(!m) throw new Error(`Format halaman salah: "${part}". Contoh: 1-3,5`);
+    let a = +m[1], b = +(m[2] || a); if(a > b) [a, b] = [b, a];
+    for(let p = a; p <= b; p++) if(p >= 1 && p <= total && !out.includes(p - 1)) out.push(p - 1);
+  }
+  if(!out.length) throw new Error(`Halaman tidak ada. Dokumen ini punya ${total} halaman.`);
+  return out;
+}
+async function pdfLoad(f){
+  const {PDFDocument} = await PDFL();
+  try { return await PDFDocument.load(await f.arrayBuffer()); }
+  catch(e){ throw new Error(/encrypt/i.test(String(e)) ? "PDF ini dikunci password. Buka kuncinya dulu." : f.name + " bukan PDF yang valid."); }
+}
+const pdfOut = async d => new Blob([await d.save()], {type:PDFMIME});
+async function pdfjsDoc(f){
+  const l = await PDFJS();
+  try { return await l.getDocument({data:new Uint8Array(await f.arrayBuffer())}).promise; }
+  catch(e){ throw new Error(e && e.name === "PasswordException" ? "PDF ini dikunci password." : f.name + " bukan PDF yang valid."); }
+}
+async function renderPage(doc, i, scale){
+  const pg = await doc.getPage(i), v1 = pg.getViewport({scale:1}), vp = pg.getViewport({scale});
+  const c = document.createElement("canvas"); c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+  const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  await pg.render({canvasContext:g, viewport:vp}).promise;
+  return {c, w1:v1.width, h1:v1.height};
+}
+async function zipBlob(items){
+  const Z = await ZIPL(), z = new Z();
+  for(const [n, b] of items) z.file(n, b);
+  return z.generateAsync({type:"blob", mimeType:"application/zip"});
+}
+async function addImagePage(d, f, a4){
+  const src = await imgOf(f), k = Math.min(1, 2400 / Math.max(src.width, src.height));
+  const img = await d.embedJpg(await bytesOf(await encode(src, Math.round(src.width * k), Math.round(src.height * k), "image/jpeg", .88)));
+  if(!a4){ const w = img.width * .75, h = img.height * .75; d.addPage([w, h]).drawImage(img, {x:0, y:0, width:w, height:h}); return; }
+  const [PW, PH] = img.width > img.height ? [841.89, 595.28] : [595.28, 841.89], m = 24;
+  const s = Math.min((PW - 2 * m) / img.width, (PH - 2 * m) / img.height), w = img.width * s, h = img.height * s;
+  d.addPage([PW, PH]).drawImage(img, {x:(PW - w) / 2, y:(PH - h) / 2, width:w, height:h});
+}
+async function pdfImages(f, fmt, dpi){
+  const doc = await pdfjsDoc(f), n = doc.numPages, name = stem(f.name), items = [];
+  if(n > 100) throw new Error("Maksimal 100 halaman.");
+  for(let i = 1; i <= n; i++){
+    const {c} = await renderPage(doc, i, dpi / 72);
+    items.push([`${name}_hal${pad3(i)}.${fmt}`, await canvasBlob(c, fmt === "png" ? "image/png" : "image/jpeg", .9)]);
+    c.width = c.height = 0;
+  }
+  if(n === 1) return res(items[0][1], items[0][0]);
+  return res(await zipBlob(items), `${name}_${fmt}.zip`);
+}
+async function txtPdf(text){
+  const {PDFDocument, StandardFonts, rgb} = await PDFL();
+  const d = await PDFDocument.create(), font = await d.embedFont(StandardFonts.Helvetica);
+  const W = 595.28, H = 841.89, M = 60, fs = 11, lh = fs * 1.4, maxW = W - 2 * M, wd = t => font.widthOfTextAtSize(t, fs);
+  const lines = [];
+  for(const raw of safe(text).replace(/\t/g, "    ").split(/\r?\n/)){
+    let cur = "";
+    for(const word of raw.split(/(\s+)/)){
+      if(wd(cur + word) <= maxW){ cur += word; continue; }
+      if(cur.trim()) lines.push(cur.trimEnd());
+      let w = word.trimStart();
+      while(w && wd(w) > maxW){ let i = w.length; while(i > 1 && wd(w.slice(0, i)) > maxW) i--; lines.push(w.slice(0, i)); w = w.slice(i); }
+      cur = w;
+    }
+    lines.push(cur.trimEnd());
+  }
+  let p = d.addPage([W, H]), y = H - M;
+  for(const ln of lines){
+    if(y - fs < M){ p = d.addPage([W, H]); y = H - M; }
+    if(ln) p.drawText(ln, {x:M, y:y - fs, size:fs, font, color:rgb(0, 0, 0)});
+    y -= lh;
+  }
+  return pdfOut(d);
+}
+async function txtDocx(text){
+  const Z = await ZIPL(), z = new Z();
+  const x = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])).replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, "");
+  z.file("[Content_Types].xml", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>');
+  z.file("_rels/.rels", '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>');
+  const body = text.split(/\r?\n/).map(l => `<w:p><w:r><w:t xml:space="preserve">${x(l)}</w:t></w:r></w:p>`).join("");
+  z.file("word/document.xml", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body>${body}<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1134" w:right="1134" w:bottom="1134" w:left="1134" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>`);
+  return z.generateAsync({type:"blob", mimeType:"application/vnd.openxmlformats-officedocument.wordprocessingml.document"});
+}
+async function pdfEdit(file, ops){
+  const {degrees, rgb, StandardFonts, LineCapStyle, BlendMode} = await PDFL();
+  const d = await pdfLoad(file);
+  const fonts = {n:await d.embedFont(StandardFonts.Helvetica), b:await d.embedFont(StandardFonts.HelveticaBold)};
+  const hex = (h, def = [0, 0, 0]) => { const m = /^#?([0-9a-f]{6})$/i.exec(h || ""); if(!m) return rgb(...def); const n = parseInt(m[1], 16); return rgb((n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255); };
+  const cache = new Map();
+  for(const o of ops){
+    if(!(o.page >= 0 && o.page < d.getPageCount())) continue;
+    const p = d.getPage(o.page), {width:W, height:H} = p.getSize(), mb = p.getMediaBox();
+    const rot = ((p.getRotation().angle % 360) + 360) % 360, VW = rot % 180 ? H : W, VH = rot % 180 ? W : H, R = degrees(rot);
+    // titik di halaman seperti terlihat (dari kiri-atas) -> koordinat PDF asli (dari kiri-bawah)
+    const map = (X, Y) => { const [x, y] = rot === 90 ? [Y, X] : rot === 180 ? [W - X, Y] : rot === 270 ? [W - Y, H - X] : [X, H - Y]; return {x:x + mb.x, y:y + mb.y}; };
+    if(o.type === "text"){
+      const size = Math.max(4, Math.min(144, +o.size || 12));
+      safe(o.text).split("\n").forEach((ln, i) => { if(ln) p.drawText(ln, {...map(o.x * VW, o.y * VH + size * (1 + 1.2 * i)), size, font:o.bold ? fonts.b : fonts.n, color:hex(o.color), rotate:R}); });
+    } else if(o.type === "erase" || o.type === "highlight"){
+      const hl = o.type === "highlight";
+      p.drawRectangle({...map(o.x * VW, (o.y + o.h) * VH), width:o.w * VW, height:o.h * VH, rotate:R, color:hl ? hex(o.color, [1, .84, .04]) : rgb(1, 1, 1), opacity:hl ? .4 : 1, ...(hl && BlendMode ? {blendMode:BlendMode.Multiply} : {})});
+    } else if(o.type === "ink"){
+      const pts = (o.points || []).map(q => map(q[0] * VW, q[1] * VH)), th = Math.max(.3, (+o.width || .004) * VW);
+      for(let i = 1; i < pts.length; i++) p.drawLine({start:pts[i - 1], end:pts[i], thickness:th, color:hex(o.color), lineCap:LineCapStyle.Round});
+    } else if(o.type === "image"){
+      let img = cache.get(o.data);
+      if(!img){ const raw = Uint8Array.from(atob(String(o.data).split(",")[1] || ""), c => c.charCodeAt(0)); img = String(o.data).startsWith("data:image/png") ? await d.embedPng(raw) : await d.embedJpg(raw); cache.set(o.data, img); }
+      p.drawImage(img, {...map(o.x * VW, (o.y + o.h) * VH), width:o.w * VW, height:o.h * VH, rotate:R});
+    }
+  }
+  return pdfOut(d);
+}
+
+let _rmbg = null;
+async function rmbgSession(){
+  if(_rmbg) return _rmbg;
+  const base = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/";
+  const ort = await lib(base + "ort.min.js", "ort");
+  ort.env.wasm.wasmPaths = base; ort.env.wasm.numThreads = 1;
+  try { _rmbg = await ort.InferenceSession.create("u2netp.onnx", {executionProviders:["wasm"]}); }
+  catch { throw new Error("Model AI belum bisa dimuat. Pastikan file u2netp.onnx ikut di-upload, lalu coba lagi."); }
+  return _rmbg;
+}
+function sharpen(c, amount){
+  const g = c.getContext("2d"), W = c.width, H = c.height, im = g.getImageData(0, 0, W, H), s = im.data, o = new Uint8ClampedArray(s);
+  for(let y = 1; y < H - 1; y++) for(let x = 1; x < W - 1; x++){
+    const i = (y * W + x) * 4;
+    for(let k = 0; k < 3; k++){
+      const v = s[i + k], blur = (s[i + k - 4] + s[i + k + 4] + s[i + k - W * 4] + s[i + k + W * 4]) / 4;
+      o[i + k] = v + amount * (v - blur);
+    }
+  }
+  im.data.set(o); g.putImageData(im, 0, 0);
+}
+const BGC = {white:"#ffffff", red:"rgb(200,16,30)", blue:"rgb(16,92,196)", black:"#000000"};
+
+const LOCAL = {
+  async "/api/convert"([f], v){
+    const lame = await lib(CDN + "lamejs/1.2.1/lame.min.js", "lamejs");
+    const AC = window.AudioContext || window.webkitAudioContext, ac = new AC();
+    let buf;
+    try { buf = await ac.decodeAudioData(await f.arrayBuffer()); }
+    catch { throw new Error("Audio di " + f.name + " tidak bisa dibaca. Coba video MP4/MOV dari kamera atau galeri."); }
+    finally { try { ac.close(); } catch {} }
+    const ch = Math.min(2, buf.numberOfChannels), enc = new lame.Mp3Encoder(ch, buf.sampleRate, +v.bitrate || 192);
+    const i16 = a => { const o = new Int16Array(a.length); for(let i = 0; i < a.length; i++){ const s = Math.max(-1, Math.min(1, a[i])); o[i] = s < 0 ? s * 0x8000 : s * 0x7fff; } return o; };
+    const L = i16(buf.getChannelData(0)), R = ch > 1 ? i16(buf.getChannelData(1)) : null, parts = [], N = 1152;
+    for(let i = 0; i < L.length; i += N){
+      const d = R ? enc.encodeBuffer(L.subarray(i, i + N), R.subarray(i, i + N)) : enc.encodeBuffer(L.subarray(i, i + N));
+      if(d.length) parts.push(new Uint8Array(d));
+      if(i % (N * 500) === 0) await new Promise(r => setTimeout(r));
+    }
+    const e = enc.flush(); if(e.length) parts.push(new Uint8Array(e));
+    return res(new Blob(parts, {type:"audio/mpeg"}), stem(f.name) + ".mp3");
+  },
+  async "/api/img/upscale"([f], v){
+    const src = await imgOf(f), w = src.width, h = src.height, fmt = v.format || "jpg";
+    const k = Math.min(v.scale === "4" ? 4 : 2, Math.sqrt(16e6 / (w * h)));
+    if(k <= 1.05) throw new Error("Foto ini sudah besar (lebih dari 16 MP).");
+    const TW = Math.round(w * k), TH = Math.round(h * k);
+    let cur = src, cw = w, ch = h;
+    while(cw * 2 < TW){
+      const c = document.createElement("canvas"); c.width = cw * 2; c.height = ch * 2;
+      const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(cur, 0, 0, c.width, c.height);
+      cur = c; cw = c.width; ch = c.height;
+    }
+    const c = document.createElement("canvas"); c.width = TW; c.height = TH;
+    const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(cur, 0, 0, TW, TH);
+    sharpen(c, .6);
+    return res(await canvasBlob(c, MT[fmt] || "image/jpeg", .95), `${stem(f.name)}_${Math.round(k * 10) / 10}x.${fmt}`);
+  },
+  async "/api/img/rmbg"([f], v){
+    const src = await imgOf(f), k = Math.min(1, 2048 / Math.max(src.width, src.height));
+    const W = Math.round(src.width * k), H = Math.round(src.height * k), S = 320;
+    const sess = await rmbgSession(), ort = window.ort;
+    const a = document.createElement("canvas"); a.width = a.height = S;
+    const ag = a.getContext("2d"); ag.drawImage(src, 0, 0, S, S);
+    const px = ag.getImageData(0, 0, S, S).data, inp = new Float32Array(3 * S * S), mean = [.485, .456, .406], sd = [.229, .224, .225];
+    for(let i = 0; i < S * S; i++) for(let c = 0; c < 3; c++) inp[c * S * S + i] = (px[i * 4 + c] / 255 - mean[c]) / sd[c];
+    const out = await sess.run({[sess.inputNames[0]]:new ort.Tensor("float32", inp, [1, 3, S, S])});
+    const m = out[sess.outputNames[0]].data;
+    let lo = Infinity, hi = -Infinity; for(const x of m){ if(x < lo) lo = x; if(x > hi) hi = x; }
+    const mk = ag.createImageData(S, S);
+    for(let i = 0; i < S * S; i++){ const val = Math.max(0, Math.min(1, ((m[i] - lo) / (hi - lo + 1e-8) - .08) / .84)) * 255; mk.data[i * 4] = mk.data[i * 4 + 1] = mk.data[i * 4 + 2] = val; mk.data[i * 4 + 3] = 255; }
+    ag.putImageData(mk, 0, 0);
+    const big = document.createElement("canvas"); big.width = W; big.height = H;
+    const bg = big.getContext("2d"); bg.imageSmoothingQuality = "high"; bg.drawImage(a, 0, 0, W, H);
+    const alpha = bg.getImageData(0, 0, W, H).data;
+    const cut = document.createElement("canvas"); cut.width = W; cut.height = H;
+    const cg = cut.getContext("2d"); cg.drawImage(src, 0, 0, W, H);
+    const im = cg.getImageData(0, 0, W, H);
+    let x0 = W, y0 = H, x1 = -1, y1 = -1;
+    for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+      const i = (y * W + x) * 4, al = alpha[i]; im.data[i + 3] = al;
+      if(al > 24){ if(x < x0) x0 = x; if(x > x1) x1 = x; if(y < y0) y0 = y; if(y > y1) y1 = y; }
+    }
+    cg.putImageData(im, 0, 0);
+    let sx = 0, sy = 0, sw = W, sh = H;
+    if(v.crop === "1" && x1 >= 0){ const p = Math.round(Math.max(W, H) * .03); sx = Math.max(0, x0 - p); sy = Math.max(0, y0 - p); sw = Math.min(W, x1 + p) - sx; sh = Math.min(H, y1 + p) - sy; }
+    const fin = document.createElement("canvas"); fin.width = sw; fin.height = sh;
+    const fg = fin.getContext("2d");
+    if(v.bg && v.bg !== "transparent"){ fg.fillStyle = BGC[v.bg] || v.bg; fg.fillRect(0, 0, sw, sh); }
+    fg.drawImage(cut, sx, sy, sw, sh, 0, 0, sw, sh);
+    return res(await canvasBlob(fin, "image/png"), stem(f.name) + "_tanpa_bg.png");
+  },
+  async "/api/img/convert"([f], v){
+    const to = v.to, src = await imgOf(f), name = stem(f.name);
+    if(to === "pdf"){ const {PDFDocument} = await PDFL(); const d = await PDFDocument.create(); await addImagePage(d, f, false); return res(await pdfOut(d), name + ".pdf"); }
+    if(to === "ico"){
+      const n = Math.min(256, Math.max(src.width, src.height)), c = document.createElement("canvas"); c.width = c.height = n;
+      const s = n / Math.max(src.width, src.height), w = src.width * s, h = src.height * s;
+      c.getContext("2d").drawImage(src, (n - w) / 2, (n - h) / 2, w, h);
+      const png = await bytesOf(await canvasBlob(c, "image/png")), head = new DataView(new ArrayBuffer(22));
+      head.setUint16(2, 1, true); head.setUint16(4, 1, true); head.setUint8(6, n % 256); head.setUint8(7, n % 256);
+      head.setUint16(10, 1, true); head.setUint16(12, 32, true); head.setUint32(14, png.length, true); head.setUint32(18, 22, true);
+      return res(new Blob([head.buffer, png], {type:"image/x-icon"}), name + ".ico");
+    }
+    if(to === "bmp"){
+      const W = src.width, H = src.height, c = document.createElement("canvas"); c.width = W; c.height = H;
+      const g = c.getContext("2d"); g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.drawImage(src, 0, 0);
+      const px = g.getImageData(0, 0, W, H).data, row = Math.ceil(W * 3 / 4) * 4, size = 54 + row * H, b = new DataView(new ArrayBuffer(size));
+      b.setUint16(0, 0x4d42, true); b.setUint32(2, size, true); b.setUint32(10, 54, true); b.setUint32(14, 40, true);
+      b.setInt32(18, W, true); b.setInt32(22, H, true); b.setUint16(26, 1, true); b.setUint16(28, 24, true); b.setUint32(34, row * H, true);
+      for(let y = 0; y < H; y++){ let o = 54 + (H - 1 - y) * row; for(let x = 0; x < W; x++){ const i = (y * W + x) * 4; b.setUint8(o++, px[i + 2]); b.setUint8(o++, px[i + 1]); b.setUint8(o++, px[i]); } }
+      return res(new Blob([b.buffer], {type:"image/bmp"}), name + ".bmp");
+    }
+    if(MT[to]) return res(await encode(src, src.width, src.height, MT[to], (+v.quality || 92) / 100), `${name}.${to}`);
+    throw new Error("Format tujuan tidak didukung.");
+  },
+  async "/api/doc/convert"([f], v){
+    const ext = extOf(f.name), to = v.to, name = stem(f.name);
+    if(ext === "pdf"){
+      if(to === "txt"){
+        const doc = await pdfjsDoc(f); let t = "";
+        for(let i = 1; i <= doc.numPages; i++){ const tc = await (await doc.getPage(i)).getTextContent(); t += tc.items.map(it => it.str + (it.hasEOL ? "\n" : "")).join("") + "\n\n"; }
+        if(!t.trim()) throw new Error("Tidak ada teks di PDF ini (mungkin hasil scan/foto).");
+        return res(new Blob([t], {type:"text/plain;charset=utf-8"}), name + ".txt");
+      }
+      if(to === "jpg" || to === "png") return pdfImages(f, to, 150);
+    }
+    if(ext === "txt" || ext === "md"){
+      const text = await f.text();
+      if(to === "pdf") return res(await txtPdf(text), name + ".pdf");
+      if(to === "docx") return res(await txtDocx(text), name + ".docx");
+    }
+    throw new Error("Konversi ini belum tersedia di versi web.");
+  },
+  async "/api/pdf/merge"(list){
+    const {PDFDocument} = await PDFL(), d = await PDFDocument.create();
+    for(const f of list){
+      if(extOf(f.name) === "pdf" || f.type === PDFMIME){ const s = await pdfLoad(f); (await d.copyPages(s, s.getPageIndices())).forEach(p => d.addPage(p)); }
+      else await addImagePage(d, f, true);
+    }
+    return res(await pdfOut(d), stem(list[0].name) + "_gabungan.pdf");
+  },
+  async "/api/pdf/split"([f], v){
+    const {PDFDocument} = await PDFL(), s = await pdfLoad(f), n = s.getPageCount(), name = stem(f.name);
+    if(v.mode === "all"){
+      const items = [];
+      for(let i = 0; i < n; i++){ const d = await PDFDocument.create(); d.addPage((await d.copyPages(s, [i]))[0]); items.push([`${name}_hal${pad3(i + 1)}.pdf`, await pdfOut(d)]); }
+      return res(await zipBlob(items), name + "_per_halaman.zip");
+    }
+    const d = await PDFDocument.create();
+    (await d.copyPages(s, parsePages(v.pages, n))).forEach(p => d.addPage(p));
+    return res(await pdfOut(d), `${name}_hal_${String(v.pages).replace(/[^\d-]+/g, "_")}.pdf`);
+  },
+  async "/api/pdf/delete"([f], v){
+    const {PDFDocument} = await PDFL(), s = await pdfLoad(f), n = s.getPageCount(), drop = new Set(parsePages(v.pages, n));
+    const keep = [...Array(n).keys()].filter(i => !drop.has(i));
+    if(!keep.length) throw new Error("Tidak bisa menghapus semua halaman.");
+    const d = await PDFDocument.create(); (await d.copyPages(s, keep)).forEach(p => d.addPage(p));
+    return res(await pdfOut(d), stem(f.name) + "_edit.pdf");
+  },
+  async "/api/pdf/rotate"([f], v){
+    const {degrees} = await PDFL(), d = await pdfLoad(f);
+    for(const i of parsePages(v.pages, d.getPageCount())){ const p = d.getPage(i); p.setRotation(degrees((p.getRotation().angle + (+v.angle || 90)) % 360)); }
+    return res(await pdfOut(d), stem(f.name) + "_putar.pdf");
+  },
+  async "/api/pdf/compress"([f], v){
+    const {PDFDocument} = await PDFL(), doc = await pdfjsDoc(f), d = await PDFDocument.create();
+    const [dpi, q] = {low:[150, .8], medium:[110, .65], high:[80, .5]}[v.level] || [110, .65];
+    for(let i = 1; i <= doc.numPages; i++){
+      const {c, w1, h1} = await renderPage(doc, i, dpi / 72);
+      const img = await d.embedJpg(await bytesOf(await canvasBlob(c, "image/jpeg", q))); c.width = c.height = 0;
+      d.addPage([w1, h1]).drawImage(img, {x:0, y:0, width:w1, height:h1});
+    }
+    let blob = await pdfOut(d);
+    if(blob.size >= f.size) blob = new Blob([await f.arrayBuffer()], {type:PDFMIME});
+    return res(blob, stem(f.name) + "_kompres.pdf", f.size);
+  },
+  async "/api/pdf/pagenum"([f], v){
+    const {StandardFonts, rgb} = await PDFL(), d = await pdfLoad(f), font = await d.embedFont(StandardFonts.Helvetica);
+    const n = d.getPageCount(), start = Math.max(0, parseInt(v.start) || 1), [vert, hor] = (v.position || "bottom-center").split("-");
+    d.getPages().forEach((p, i) => {
+      const k = i + start, label = v.style === "n/total" ? `${k} / ${n + start - 1}` : v.style === "halaman" ? `Halaman ${k}` : String(k);
+      const {width:W, height:H} = p.getSize(), mb = p.getMediaBox(), tw = font.widthOfTextAtSize(label, 10);
+      const x = hor === "left" ? 36 : hor === "right" ? W - 36 - tw : (W - tw) / 2;
+      p.drawText(label, {x:x + mb.x, y:(vert === "top" ? H - 30 : 24) + mb.y, size:10, font, color:rgb(.25, .25, .25)});
+    });
+    return res(await pdfOut(d), stem(f.name) + "_nomor.pdf");
+  },
+  async "/api/pdf/watermark"([f], v){
+    const {StandardFonts, rgb, degrees} = await PDFL(), d = await pdfLoad(f), font = await d.embedFont(StandardFonts.HelveticaBold);
+    const text = safe(v.text).trim().slice(0, 60); if(!text) throw new Error("Tulis teks watermark.");
+    for(const p of d.getPages()){
+      const {width:W, height:H} = p.getSize(), mb = p.getMediaBox(), deg = W < H ? 45 : 30, r = deg * Math.PI / 180;
+      const fs = Math.max(24, Math.min(110, W * 1.1 / Math.max(4, text.length))), tw = font.widthOfTextAtSize(text, fs);
+      const x = W / 2 - tw / 2 * Math.cos(r) + fs / 3 * Math.sin(r), y = H / 2 - tw / 2 * Math.sin(r) - fs / 3 * Math.cos(r);
+      p.drawText(text, {x:x + mb.x, y:y + mb.y, size:fs, font, color:rgb(.5, .5, .5), opacity:+v.opacity || .18, rotate:degrees(deg)});
+    }
+    return res(await pdfOut(d), stem(f.name) + "_watermark.pdf");
+  },
+  async "/api/pdf/from-images"(list, v){
+    const {PDFDocument} = await PDFL(), d = await PDFDocument.create();
+    for(const f of list) await addImagePage(d, f, v.page !== "fit");
+    return res(await pdfOut(d), stem(list[0].name) + (list.length > 1 ? "_dkk" : "") + ".pdf");
+  },
+  async "/api/pdf/to-images"([f], v){
+    return pdfImages(f, v.format === "png" ? "png" : "jpg", {low:96, medium:150, high:220}[v.quality] || 150);
+  }
+};
+
+route();
+}
+</script>
+</body>
+</html>
