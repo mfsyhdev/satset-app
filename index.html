@@ -391,24 +391,58 @@ function renderTab(id){
   if(id === "unduh") bindDownloader();
 }
 
-// ---------- DOWNLOAD (lewat Shortcut a-Shell + SW-DLT, langsung di iPhone)
+// ---------- DOWNLOAD (dijalankan oleh a-Shell di iPhone, dipanggil langsung dari SatSet)
 const YTCMD = "python3 -m pip install -U yt-dlp";
+let dlMode = "mp4";
+function dlCommand(url){
+  return dlMode === "mp3"
+    ? `yt-dlp -P ~/Documents -x --audio-format mp3 ${url}`
+    : `yt-dlp -P ~/Documents -f b ${url}`;
+}
 function downloaderHTML(){
-  return `<div class="hdr">Download video & MP3</div>
+  return `<div style="margin-top:12px">${segHTML("dlmode", [["mp4","Video MP4"],["mp3","Audio MP3"]], dlMode).replace('class="segwrap"', 'class=""')}</div>
+  <div class="hdr">Link video</div>
+  <div class="group"><div class="field">
+    <input type="url" id="url" placeholder="Tempel link TikTok, YouTube, IG, FB…" autocomplete="off" autocapitalize="off" inputmode="url" aria-label="Link video">
+    <button class="pill" id="paste" type="button">Tempel</button></div></div>
+  <button class="btn" id="dlgo" type="button">Download MP4</button>
+  <div class="toast" id="msg"></div>
+  <div id="dlbox" class="hide"><div class="hdr">Perintah yang dijalankan</div>
+    <div class="group"><div class="field"><code id="dlcmd" style="flex:1;font-size:13px;overflow-wrap:anywhere"></code><button class="pill" id="dlcopy" type="button">Salin</button></div></div>
+    <p class="foot">Kalau a-Shell terbuka tapi tidak mulai download, tempel perintah ini di a-Shell lalu Enter. Hasilnya ada di app <b>File → Di iPhone Saya → a-Shell</b>, lalu Bagikan → <b>Simpan Video</b>.</p></div>
+  <div class="hdr">Persiapan (sekali saja)</div>
   <div class="group">
-    <div class="cell ic"><div class="icon" style="background:#1c1c1e">1</div><div class="grow">Install <b>a-Shell</b> (gratis)<small>Aplikasi terminal di App Store</small></div></div>
-    <div class="cell ic"><div class="icon" style="background:#007aff">2</div><div class="grow">Buka a-Shell, tempel perintah di bawah, Enter<small>Tunggu sampai muncul "Successfully installed"</small></div></div>
-    <div class="cell ic"><div class="icon" style="background:#34c759">3</div><div class="grow">Pasang Shortcut <b>SW-DLT</b><small>Halaman Releases → rilis teratas → Tambah Pintasan</small></div></div>
-    <div class="cell ic"><div class="icon" style="background:#ff9500">4</div><div class="grow">Di TikTok/YouTube/IG/FB: <b>Bagikan → SW-DLT</b><small>Pilih Video atau Audio, lalu Simpan Video</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#5856d6">1</div><div class="grow">Install <b>a-Shell</b> (gratis)<small>Aplikasi terminal di App Store</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#007aff">2</div><div class="grow">Di a-Shell, jalankan perintah pasang yt-dlp<small>Ulangi sebulan sekali agar tetap bisa download</small></div></div>
+    <div class="cell ic"><div class="icon" style="background:#ff9500">3</div><div class="grow">Matikan <b>Tanda Baca Cerdas</b><small>Pengaturan → Umum → Papan Ketik</small></div></div>
   </div>
-  <div class="hdr">Perintah untuk a-Shell</div>
-  <div class="group"><div class="field"><code style="flex:1;font-size:15px;overflow-wrap:anywhere">${YTCMD}</code><button class="pill" id="cpcmd" type="button">Salin</button></div></div>
-  <a class="btn" href="https://apps.apple.com/app/id1473805438" target="_blank" rel="noopener">Buka a-Shell di App Store</a>
-  <a class="btn sec" href="https://github.com/net00-1/SW-DLT/releases" target="_blank" rel="noopener">Buka Shortcut SW-DLT</a>
-  <p class="foot">Download berjalan langsung di iPhone-mu, tanpa server. Ulangi perintah di atas sebulan sekali supaya tetap bisa download. Gunakan hanya untuk video milikmu atau yang sudah kamu dapat izinnya.</p>`;
+  <div class="group" style="margin-top:12px"><div class="field"><code style="flex:1;font-size:14px;overflow-wrap:anywhere">${YTCMD}</code><button class="pill" id="cpcmd" type="button">Salin</button></div></div>
+  <a class="btn sec" href="https://apps.apple.com/app/id1473805438" target="_blank" rel="noopener">Buka a-Shell di App Store</a>
+  <p class="foot">Download berjalan di iPhone-mu sendiri lewat a-Shell, tanpa server. Gunakan hanya untuk video milikmu atau yang sudah kamu dapat izinnya.</p>`;
 }
 function howHTML(){ return ""; }
-function bindDownloader(){ const b = $("#cpcmd"); if(b) b.onclick = e => copyText(YTCMD, e.target); }
+function bindDownloader(){
+  const root = $("#main"), m = $("#msg");
+  const label = () => $("#dlgo").textContent = dlMode === "mp3" ? "Download MP3" : "Download MP4";
+  bindSegs(root, () => { dlMode = segVal(root, "dlmode") || "mp4"; label(); });
+  label();
+  $("#cpcmd").onclick = e => copyText(YTCMD, e.target);
+  $("#paste").onclick = async () => {
+    try { $("#url").value = (await navigator.clipboard.readText()).trim(); }
+    catch { $("#url").focus(); toast(m, "err", "Ketuk lama kolom link, lalu pilih Tempel."); }
+  };
+  $("#dlcopy").onclick = e => copyText($("#dlcmd").textContent, e.target);
+  $("#dlgo").onclick = () => {
+    const raw = $("#url").value.trim(), found = raw.match(/https?:\/\/[^\s"'“”‘’<>]+/);
+    if(!found) return toast(m, "err", "Tempel link video yang valid (diawali https://).");
+    const url = found[0].replace(/[),.]+$/, "");
+    const cmd = dlCommand(/[&?;|$`]/.test(url) ? `'${url}'` : url);
+    $("#dlcmd").textContent = cmd; $("#dlbox").classList.remove("hide");
+    toast(m, "info", "Membuka a-Shell… download berjalan di sana.");
+    location.href = "ashell:" + encodeURIComponent(cmd);
+    setTimeout(() => toast(m, "ok", "Kalau a-Shell belum terpasang, install dulu lewat tombol di bawah."), 2500);
+  };
+}
 async function readResp(resp, fallback, barEl){
   if(!resp.ok){ let t = "Gagal memproses."; try { t = (await resp.json()).error || t } catch {} throw new Error(t); }
   const total = +resp.headers.get("Content-Length") || 0;
