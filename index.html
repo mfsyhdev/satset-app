@@ -33,14 +33,18 @@ LAYOUT: satu kolom 600px, judul besar, grup inset, tab bar tetap di bawah
 body{background:var(--bg);color:var(--ink);font:17px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",system-ui,"Segoe UI",Roboto,sans-serif;
   overflow-x:clip;-webkit-font-smoothing:antialiased;padding-bottom:calc(84px + env(safe-area-inset-bottom))}
 button,input,select,textarea{font:inherit;color:inherit}
-.nav{position:sticky;top:0;z-index:5;background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);
+.nav{position:sticky;top:0;z-index:5;background:var(--bg);
   padding:calc(env(safe-area-inset-top) + 8px) 8px 8px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:44px;border-bottom:.5px solid transparent}
-.nav.line{border-bottom-color:var(--sep)}
+.nav.line{border-bottom-color:var(--sep);background:var(--bar);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px)}
 .nav .t{font-weight:600;font-size:17px;opacity:0;transition:opacity .2s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw}
 .nav.line .t{opacity:1}
 .back{justify-self:start;border:0;background:none;color:var(--blue);font-size:17px;display:flex;align-items:center;gap:2px;cursor:pointer;padding:6px 8px;min-height:44px}
 .back svg{width:13px;height:21px}
 main{max-width:600px;margin:0 auto;padding:0 16px 32px}
+main.root{padding-top:max(14px, env(safe-area-inset-top))}
+.titlerow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.themebtn{border:0;background:var(--fill);color:var(--ink);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:600;display:flex;gap:6px;align-items:center;min-height:36px;cursor:pointer;flex:none}
+.themebtn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 h1{font-size:34px;line-height:1.1;font-weight:700;margin:2px 4px 6px;display:flex;align-items:center;gap:10px}
 h1 .logo{width:36px;height:36px;flex:none}
 .lead{color:var(--sub);font-size:15px;margin:0 4px 6px}
@@ -186,6 +190,18 @@ const extOf = n => (n.match(/\.([^.]+)$/) || [, ""])[1].toLowerCase();
 const stem = n => n.replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "_").slice(0, 80) || "file";
 const store = { get(k, d){ try { return JSON.parse(localStorage.getItem("alldl_" + k)) ?? d } catch { return d } },
                 set(k, v){ try { localStorage.setItem("alldl_" + k, JSON.stringify(v)) } catch {} } };
+// ---------- tema: Otomatis / Terang / Gelap
+const THEMES = {auto:["Otomatis","M12 3v18M12 3a9 9 0 1 0 0 18"], light:["Terang","M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"], dark:["Gelap","M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"]};
+let theme = store.get("theme", "auto"); if(!THEMES[theme]) theme = "auto";
+const darkMQ = matchMedia("(prefers-color-scheme: dark)");
+function applyTheme(){
+  const r = document.documentElement;
+  if(theme === "auto") r.removeAttribute("data-theme"); else r.dataset.theme = theme;
+  const dark = theme === "dark" || (theme === "auto" && darkMQ.matches);
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.content = dark ? "#000000" : "#f2f2f7");
+}
+applyTheme(); try { darkMQ.addEventListener("change", applyTheme); } catch {}
+const themeBtn = () => `<button class="themebtn" id="themebtn" type="button" aria-label="Ganti tema"><svg viewBox="0 0 24 24"><path d="${THEMES[theme][1]}"/></svg>${THEMES[theme][0]}</button>`;
 
 // ---------- ikon (stroke 24x24)
 const P = {
@@ -257,7 +273,7 @@ const TOOLS = [
      {name:"bg", label:"Latar baru", type:"seg", choices:[["transparent","Transparan"],["white","Putih"],["red","Merah"],["blue","Biru"]], def:"transparent"},
      {name:"crop", label:"Potong", type:"seg", choices:[["0","Ukuran asli"],["1","Rapat ke objek"]], def:"0"}],
    note:"Pakai AI. Model AI (±4,6 MB) diunduh sekali saat pertama dipakai. Latar merah/biru pas untuk pas foto KTP, ijazah, dan lamaran kerja. Transparan cocok untuk logo, stiker, dan foto produk jualan."},
-  {id:"foto-grid", tab:"gambar", title:"Foto Grid & Kolase", sub:"Gabung foto jadi kolase, atau pecah 1 foto jadi grid feed IG", icon:"grid", color:"#5856d6", custom:"grid"},
+  {id:"foto-grid", tab:"gambar", title:"Grid & Kolase", sub:"Foto & video: pecah jadi grid IG (sampai 5×5) atau kolase", icon:"grid", color:"#5856d6", custom:"grid"},
   {id:"foto-pdf-g", tab:"gambar", title:"Foto ke PDF", sub:"Gabung beberapa foto jadi 1 PDF", icon:"pdf", color:"#ff3b30", link:"foto-pdf"},
 
   // DOKUMEN
@@ -381,14 +397,15 @@ function listHTML(tab){
 }
 function renderTab(id){
   const T = TABS.find(t => t.id === id);
-  $("#back").classList.add("hide"); $("#navT").textContent = T.title;
+  $("#back").classList.add("hide"); $("#navT").textContent = T.title; $("#nav").classList.add("hide"); $("#main").classList.add("root");
   const logo = id === "unduh" ? `<svg class="logo" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="23" fill="#007aff"/><path d="M74 16H38L24 52h30L26 84h36l14-34H46z" fill="#fff"/></svg>` : "";
-  let html = `<div class="view"><h1>${logo}${esc(T.title)}</h1><p class="lead">${esc(T.lead)}</p>`;
+  let html = `<div class="view"><div class="titlerow"><h1>${logo}${esc(T.title)}</h1>${themeBtn()}</div><p class="lead">${esc(T.lead)}</p>`;
   if(id === "unduh") html += downloaderHTML() + `<div class="hdr">Alat audio</div>` + listHTML("unduh") + howHTML();
   else html += `<div class="hdr">Pilih alat</div>` + listHTML(id);
   html += `<p class="legal">© ${new Date().getFullYear()} SatSet · by Muhammad Alfiansyah<br>Unduh hanya konten milikmu atau yang kamu punya izin.</p></div>`;
   $("#main").innerHTML = html;
   if(id === "unduh") bindDownloader();
+  $("#themebtn").onclick = () => { const k = Object.keys(THEMES); theme = k[(k.indexOf(theme) + 1) % k.length]; store.set("theme", theme); applyTheme(); $("#themebtn").outerHTML = themeBtn(); renderTab(id); };
 }
 
 // ---------- DOWNLOAD (dijalankan oleh a-Shell di iPhone, dipanggil langsung dari SatSet)
@@ -398,7 +415,7 @@ const SC_NAME = "SatSet Simpan";
 function dlCommand(url){
   if(dlMode === "mp3") return `yt-dlp -P ~/Documents -x --audio-format mp3 ${url}`;
   return dlTo === "galeri"
-    ? `yt-dlp -f b --force-overwrites -P ~/Documents -o satset.mp4 ${url}`
+    ? `yt-dlp -f b -P ~/Documents -o satset.mp4 ${url}`
     : `yt-dlp -P ~/Documents -f b ${url}`;
 }
 function downloaderHTML(){
@@ -423,11 +440,12 @@ function downloaderHTML(){
   <details class="group" style="margin-top:12px;padding:12px 16px"><summary style="cursor:pointer;color:var(--blue);font-weight:600">Cara membuat pintasan "SatSet Simpan"</summary>
     <ol style="margin:10px 0 0 18px;font-size:15px;line-height:1.5;color:var(--ink)">
       <li>Buka app <b>Pintasan</b> → <b>+</b> → beri nama persis <b>SatSet Simpan</b>.</li>
-      <li>Tambah Tindakan → cari <b>a-Shell</b> → pilih <b>Execute Command</b>. Di kolom perintah, ketuk lalu pilih variabel <b>Input Pintasan</b>. Kalau ada pilihan <b>Open a-Shell / Keep going</b>, nyalakan.</li>
-      <li>Tambah Tindakan → a-Shell → <b>Get File</b> → isi <b>satset.mp4</b></li>
+      <li>Tambah Tindakan → <b>Ambil Papan Klip</b> (Get Clipboard).</li>
+      <li>Tambah Tindakan → <b>a-Shell</b> → <b>Execute Command</b>. Di kolom perintah ketik 2 baris:<br><code style="font-size:13px">rm -f ~/Documents/satset.mp4</code><br><code style="font-size:13px">yt-dlp -f b -P ~/Documents -o satset.mp4</code> lalu <b>spasi</b>, lalu ketuk variabel <b>Papan Klip</b>. Papan Klip harus berada di <b>paling akhir</b> baris kedua.</li>
+      <li>Tambah Tindakan → <b>a-Shell</b> → <b>Get File</b> → isi <b>satset.mp4</b></li>
       <li>Tambah Tindakan → <b>Simpan ke Album Foto</b> → Terbaru. Ketuk Selesai.</li>
     </ol>
-    <p class="foot" style="margin:8px 0 0">Selesai. Pilihan "Galeri (otomatis)" di atas akan menjalankan pintasan ini.</p></details>
+    <p class="foot" style="margin:8px 0 0">Pintasan ini tidak perlu "Input Pintasan" dan tidak perlu muncul di menu Bagikan. SatSet menyalin link-nya ke papan klip, lalu menjalankan pintasan ini.</p></details>
   <div class="group" style="margin-top:12px"><div class="field"><code style="flex:1;font-size:14px;overflow-wrap:anywhere">${YTCMD}</code><button class="pill" id="cpcmd" type="button">Salin</button></div></div>
   <a class="btn sec" href="https://apps.apple.com/app/id1473805438" target="_blank" rel="noopener">Buka a-Shell di App Store</a>
   <p class="foot">Download berjalan di iPhone-mu sendiri lewat a-Shell, tanpa server. Gunakan hanya untuk video milikmu atau yang sudah kamu dapat izinnya.</p>`;
@@ -452,8 +470,13 @@ function bindDownloader(){
     const cmd = dlCommand(/[&?;|$`]/.test(url) ? `'${url}'` : url);
     $("#dlcmd").textContent = cmd; $("#dlbox").classList.remove("hide");
     if(dlMode === "mp4" && dlTo === "galeri"){
-      toast(m, "info", "Menjalankan pintasan SatSet Simpan… video akan masuk ke Galeri.");
-      location.href = "shortcuts://run-shortcut?name=" + encodeURIComponent(SC_NAME) + "&input=text&text=" + encodeURIComponent(cmd);
+      // salin link ke papan klip (sinkron, supaya pasti terjadi sebelum pindah ke app Pintasan)
+      const ta = document.createElement("textarea"); ta.value = url; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;top:0;left:0;opacity:0;font-size:16px"; document.body.appendChild(ta);
+      ta.select(); ta.setSelectionRange(0, url.length); try { document.execCommand("copy"); } catch {} ta.remove();
+      try { navigator.clipboard.writeText(url).catch(() => {}); } catch {}
+      toast(m, "info", "Link disalin. Menjalankan pintasan SatSet Simpan… video akan masuk ke Galeri.");
+      location.href = "shortcuts://run-shortcut?name=" + encodeURIComponent(SC_NAME);
       setTimeout(() => toast(m, "ok", "Kalau muncul \"pintasan tidak ditemukan\", buat dulu pintasan SatSet Simpan (langkah 4 di bawah)."), 2500);
       return;
     }
@@ -478,7 +501,7 @@ let files = [];
 function openTool(t){
   curTool = t; files = [];
   const T = TABS.find(x => x.id === curTab);
-  $("#back").classList.remove("hide"); $("#backTxt").textContent = T.label; $("#navT").textContent = t.title;
+  $("#back").classList.remove("hide"); $("#backTxt").textContent = T.label; $("#navT").textContent = t.title; $("#nav").classList.remove("hide"); $("#main").classList.remove("root");
   let h = `<div class="view"><h1>${esc(t.title)}</h1><p class="lead">${esc(t.sub)}</p>`;
   if(t.custom){ h += CUSTOM[t.custom].html() + "</div>"; $("#main").innerHTML = h; CUSTOM[t.custom].bind(); return; }
   h += `<div class="hdr">File</div><div class="group"><label class="drop" id="drop"><b>${t.multi ? "Pilih File" : "Pilih 1 File"}</b>
@@ -516,7 +539,9 @@ const runLabel = t => ({"kompres-foto":"Kompres","ubah-format":"Ubah Format","pe
 function acceptLabel(a){
   if(a === IMG) return "JPG, PNG, HEIC, WEBP, GIF…";
   if(a.startsWith("video")) return "MP4, MOV, MKV, WEBM · maks 200 MB";
-  return a.split(",").filter(x => x.startsWith(".")).map(x => x.slice(1).toUpperCase()).slice(0, 8).join(", ") + " · maks 200 MB";
+  const ex = a.split(",").filter(x => x.startsWith(".") && !/heic|heif/.test(x)).map(x => x.slice(1).toUpperCase());
+  if(a.includes("image/*")) ex.push("JPG", "PNG", "HEIC");
+  return ex.slice(0, 8).join(", ") + " · maks 200 MB";
 }
 function vals(t){
   const root = $("#main"), v = {...(t.fixed || {})};
@@ -755,123 +780,232 @@ const CUSTOM = {
       $("#gen").onclick = gen; $("#cpy").onclick = e => copyText($("#pw").textContent, e.target); gen(); }
   },
 
-  // ---------- FOTO GRID: kolase & pecah grid Instagram
+  // ---------- GRID & KOLASE (foto + video): pecah grid IG atau gabung kolase
   grid:{
-    html:() => `<div class="group">${segHTML("gmode", [["collage","Kolase"],["split","Pecah Grid IG"]], "collage")}</div>
-      <div class="hdr" id="ghdr">Foto (2–9)</div>
-      <div class="group"><label class="drop"><b id="gpick">Pilih Foto</b><span id="ghint">Bisa pilih banyak sekaligus</span>
-        <input type="file" id="gfile" accept="${IMG}" multiple hidden></label></div>
+    html:() => {
+      const nums = (name, def, from = 1, to = 5) => segHTML(name, Array.from({length:to - from + 1}, (_, i) => [String(i + from), String(i + from)]), def);
+      return `<div class="group">${segHTML("gmode", [["split","Pecah Grid IG"],["collage","Kolase"]], "split")}</div>
+      <div class="hdr" id="ghdr">Foto atau video</div>
+      <div class="group"><label class="drop"><b id="gpick">Pilih Foto / Video</b><span id="ghint">1 foto atau video, sebaiknya resolusi tinggi</span>
+        <input type="file" id="gfile" accept="image/*,video/*,.heic,.heif" hidden></label></div>
       <div id="glist"></div>
-      <div id="gcol">
-        <div class="hdr">Kolom</div><div class="group">${segHTML("cols", [["1","1"],["2","2"],["3","3"]], "2")}</div>
-        <div class="hdr">Ukuran hasil</div><div class="group">${segHTML("ratio", [["1:1","1:1 Feed"],["4:5","4:5 Feed"],["9:16","9:16 Story"],["3:2","3:2 Lanskap"]], "4:5")}</div>
+      <div class="hdr">Pratinjau</div>
+      <div class="group" style="padding:12px;background:var(--card2)">
+        <canvas id="gcv" style="display:block;width:100%;height:auto;border-radius:4px;touch-action:none;cursor:grab"></canvas>
+        <p class="foot" id="gnote" style="margin:8px 4px 0;text-align:center">Pilih foto atau video dulu</p></div>
+      <div id="gedit" class="hide" style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn sec" id="grot" type="button" style="margin:0;flex:1">↻ Putar 90°</button>
+        <button class="btn sec" id="greset" type="button" style="margin:0;flex:1">Pas tengah</button></div>
+      <div id="gzoomrow" class="group hide" style="margin-top:10px"><div class="range"><span style="width:56px">Zoom</span><input type="range" id="gzoom" min="100" max="300" value="100"><output>100%</output></div></div>
+      <div id="gsplit">
+        <div class="hdr">Cepat pilih</div><div class="group"><div class="eopt" style="padding:8px 12px" id="gpre">${[["3","1"],["3","2"],["3","3"],["3","4"],["2","2"],["2","3"],["4","4"],["5","5"]].map(([c, r]) => `<button type="button" class="tgl" data-c="${c}" data-r="${r}">${c}×${r}</button>`).join("")}</div></div>
+        <div class="hdr">Kolom</div><div class="group">${nums("gcols", "3")}</div>
+        <div class="hdr">Baris</div><div class="group">${nums("grows", "3")}</div>
+        <div class="hdr">Bentuk tiap kotak</div><div class="group">${segHTML("tile", [["1:1","1:1"],["4:5","4:5"],["3:4","3:4"],["9:16","9:16"]], "4:5")}</div>
+      </div>
+      <div id="gcol" class="hide">
+        <div class="hdr">Kolom</div><div class="group">${nums("cols", "2")}</div>
+        <div class="hdr">Ukuran hasil</div><div class="group">${segHTML("ratio", [["1:1","1:1"],["4:5","4:5"],["9:16","Story"],["16:9","Lanskap"]], "4:5")}</div>
         <div class="hdr">Jarak & sudut</div><div class="group">
-          <div class="range"><span style="width:56px">Jarak</span><input type="range" id="gap" min="0" max="60" value="16"><output>16</output></div>
+          <div class="range"><span style="width:56px">Jarak</span><input type="range" id="gap" min="0" max="60" value="12"><output>12</output></div>
           <div class="range" style="border-top:.5px solid var(--sep)"><span style="width:56px">Sudut</span><input type="range" id="rad" min="0" max="60" value="0"><output>0</output></div></div>
         <div class="hdr">Warna latar</div><div class="group"><div class="eopt" style="padding:6px 16px 12px">${["#ffffff","#000000","#f2f2f7","#f5e6d3","#007aff","#ff2d55"].map((c, i) => `<button type="button" class="dot${i ? "" : " on"}" data-bg="${c}" style="background:${c}" aria-label="Latar ${c}"></button>`).join("")}</div></div>
+        <div id="gaudio" class="hide"><div class="hdr">Suara video</div><div class="group">${segHTML("gsnd", [["1","Suara video pertama"],["0","Tanpa suara"]], "1")}</div></div>
       </div>
-      <div id="gsplit" class="hide">
-        <div class="hdr">Grid</div><div class="group">${segHTML("grid", [["3x1","3×1 Panorama"],["3x2","3×2"],["3x3","3×3"],["3x4","3×4"]], "3x3")}</div>
-        <div class="hdr">Bentuk tiap kotak</div><div class="group">${segHTML("tile", [["1:1","1:1"],["4:5","4:5"],["3:4","3:4 (grid profil baru)"]], "4:5")}</div>
-        <div class="hdr">Posisi potong</div><div class="group">${segHTML("focus", [["0","Atas/Kiri"],["0.5","Tengah"],["1","Bawah/Kanan"]], "0.5")}</div>
-      </div>
-      <div class="hdr">Pratinjau</div><div class="group" style="padding:12px;background:var(--card2)"><canvas id="gcv" style="display:block;width:100%;height:auto;border-radius:4px"></canvas>
-        <p class="foot" id="gnote" style="margin:8px 4px 0;text-align:center">Pilih foto dulu</p></div>
-      <button class="btn" id="gsave" type="button" disabled>Buat</button>
-      <div class="toast" id="msg"></div><div id="out"></div>`,
+      <button class="btn" id="gsave" type="button" disabled>Pecah Jadi Grid</button>
+      <div class="prog" id="bar"><i></i></div><div class="toast" id="msg"></div><div id="out"></div>
+      <p class="foot">Geser pratinjau dengan jari untuk mengatur posisi potongan. Video diproses langsung di HP secara real-time (maks 60 detik), jadi biarkan layar tetap menyala.</p>`;
+    },
     bind(){
       const root = $("#main"), cv = $("#gcv"), g = cv.getContext("2d");
-      let mode = "collage", imgs = [], bg = "#ffffff";
-      const val = n => segVal(root, n);
-      const R = r => { const [a, b] = r.split(":").map(Number); return a / b; };
-      function cover(ctx, im, x, y, w, h, fx = .5, fy = .5){
-        const s = Math.max(w / im.width, h / im.height), sw = w / s, sh = h / s;
-        ctx.drawImage(im, (im.width - sw) * fx, (im.height - sh) * fy, sw, sh, x, y, w, h);
+      let mode = "split", items = [], bg = "#ffffff", busy = false;
+      const val = n => segVal(root, n), R = r => { const [a, b] = r.split(":").map(Number); return a / b; };
+      const VMIME = window.MediaRecorder ? ["video/mp4;codecs=avc1.42E01E,mp4a.40.2", "video/mp4", "video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(m => MediaRecorder.isTypeSupported(m)) : null;
+      const VEXT = VMIME && VMIME.startsWith("video/mp4") ? "mp4" : "webm";
+      const sel = () => items[0];
+      const hasVideo = () => items.some(it => it.kind === "vid");
+
+      async function load(file){
+        const url = URL.createObjectURL(file);
+        if(file.type.startsWith("video/") || /\.(mp4|mov|m4v|webm)$/i.test(file.name)){
+          const v = await makeVideo(url);
+          return {kind:"vid", el:v, w:v.videoWidth, h:v.videoHeight, dur:v.duration, url, name:file.name, rot:0, px:.5, py:.5, zoom:1};
+        }
+        const im = await decode(file);
+        return {kind:"img", el:im, w:im.width, h:im.height, url, name:file.name, rot:0, px:.5, py:.5, zoom:1};
       }
-      function rr(ctx, x, y, w, h, r){ ctx.beginPath(); if(ctx.roundRect && r) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
-      function collage(W){
-        const H = Math.round(W / R(val("ratio"))), cols = +val("cols"), k = W / 1080;
-        const gap = +$("#gap").value * k, rad = +$("#rad").value * k;
-        const c = document.createElement("canvas"); c.width = W; c.height = H; const x = c.getContext("2d");
-        x.fillStyle = bg; x.fillRect(0, 0, W, H);
-        const n = imgs.length, rows = Math.ceil(n / cols), rh = (H - gap * (rows + 1)) / rows;
+      function makeVideo(url){
+        return new Promise((ok, no) => {
+          const v = document.createElement("video"); v.muted = true; v.playsInline = true; v.preload = "auto"; v.setAttribute("playsinline", ""); v.src = url;
+          const fail = () => no(new Error("Video tidak bisa dibuka di browser ini."));
+          v.onerror = fail;
+          v.onloadedmetadata = () => { v.currentTime = Math.min(.1, (v.duration || 1) / 2); };
+          v.onseeked = () => { v.onseeked = null; ok(v); };
+          setTimeout(() => v.readyState >= 2 ? ok(v) : fail(), 15000);
+        });
+      }
+      // gambar item (foto/video) dengan rotasi + potong "cover" + geser/zoom ke kotak tujuan
+      function drawCover(ctx, it, x, y, w, h, rad){
+        const r = it.rot, dW = r % 180 ? it.h : it.w, dH = r % 180 ? it.w : it.h;
+        const s = Math.max(w / dW, h / dH) * it.zoom, vw = dW * s, vh = dH * s;
+        const ox = x + (w - vw) * it.px, oy = y + (h - vh) * it.py;
+        ctx.save(); ctx.beginPath();
+        if(rad && ctx.roundRect) ctx.roundRect(x, y, w, h, rad); else ctx.rect(x, y, w, h);
+        ctx.clip(); ctx.translate(ox + vw / 2, oy + vh / 2); ctx.rotate(r * Math.PI / 180);
+        ctx.drawImage(it.el, -it.w * s / 2, -it.h * s / 2, it.w * s, it.h * s);
+        ctx.restore();
+      }
+      const splitDims = (k = 1) => { const cols = +val("gcols"), rows = +val("grows"), tw = Math.round(1080 * k / 2) * 2, th = Math.round(1080 * k / R(val("tile")) / 2) * 2; return {cols, rows, tw, th, W:cols * tw, H:rows * th}; };
+      function collageLayout(W){
+        const H = Math.round(W / R(val("ratio")) / 2) * 2, cols = +val("cols"), k = W / 1080, gap = +$("#gap").value * k, rad = +$("#rad").value * k;
+        const n = items.length, rows = Math.ceil(n / cols), rh = (H - gap * (rows + 1)) / rows, cells = [];
         let i = 0;
-        for(let r = 0; r < rows; r++){
-          const inRow = Math.min(cols, n - i), cw = (W - gap * (inRow + 1)) / inRow;
-          for(let j = 0; j < inRow; j++, i++){
-            const cx = gap + j * (cw + gap), cy = gap + r * (rh + gap);
-            x.save(); rr(x, cx, cy, cw, rh, rad); x.clip(); cover(x, imgs[i].im, cx, cy, cw, rh); x.restore();
-          }
-        }
-        return c;
+        for(let r = 0; r < rows; r++){ const inRow = Math.min(cols, n - i), cw = (W - gap * (inRow + 1)) / inRow;
+          for(let j = 0; j < inRow; j++, i++) cells.push({x:gap + j * (cw + gap), y:gap + r * (rh + gap), w:cw, h:rh}); }
+        return {W, H, cells, rad};
       }
-      function splitDims(){ const [cols, rows] = val("grid").split("x").map(Number), t = R(val("tile")); return {cols, rows, tw:1080, th:Math.round(1080 / t)}; }
-      function splitSource(){
-        const {cols, rows, tw, th} = splitDims(), W = cols * tw, H = rows * th, f = +val("focus");
-        const c = document.createElement("canvas"); c.width = W; c.height = H; cover(c.getContext("2d"), imgs[0].im, 0, 0, W, H, f, f); return c;
-      }
+      function drawCollage(ctx, L){ ctx.fillStyle = bg; ctx.fillRect(0, 0, L.W, L.H); items.forEach((it, i) => drawCover(ctx, it, L.cells[i].x, L.cells[i].y, L.cells[i].w, L.cells[i].h, L.rad)); }
+
       function draw(){
-        const ok = mode === "collage" ? imgs.length >= 2 : imgs.length >= 1;
-        $("#gsave").disabled = !ok;
-        if(!ok){ cv.width = 600; cv.height = 300; g.fillStyle = "#ddd"; g.fillRect(0, 0, 600, 300); $("#gnote").textContent = mode === "collage" ? "Pilih minimal 2 foto" : "Pilih 1 foto"; return; }
+        const ok = mode === "collage" ? items.length >= 2 : items.length === 1;
+        $("#gsave").disabled = !ok || busy;
+        $("#gedit").classList.toggle("hide", mode !== "split" || !ok); $("#gedit").style.display = mode === "split" && ok ? "flex" : "none";
+        $("#gzoomrow").classList.toggle("hide", mode !== "split" || !ok);
+        $("#gaudio").classList.toggle("hide", !hasVideo());
+        $("#gsave").textContent = mode === "collage" ? (hasVideo() ? "Buat Kolase Video" : "Buat Kolase") : (hasVideo() ? "Pecah Video Jadi Grid" : "Pecah Jadi Grid");
+        if(!ok){ cv.width = 600; cv.height = 300; g.fillStyle = "#d1d1d6"; g.fillRect(0, 0, 600, 300); $("#gnote").textContent = mode === "collage" ? "Pilih minimal 2 foto/video (maks 16)" : "Pilih 1 foto atau video"; return; }
         if(mode === "collage"){
-          const c = collage(720); cv.width = c.width; cv.height = c.height; g.drawImage(c, 0, 0);
-          $("#gnote").textContent = `${imgs.length} foto · hasil 1080×${Math.round(1080 / R(val("ratio")))} px`;
-        } else {
-          const {cols, rows, tw, th} = splitDims(), src = splitSource(), k = 720 / src.width;
-          cv.width = 720; cv.height = Math.round(src.height * k); g.drawImage(src, 0, 0, cv.width, cv.height);
-          g.strokeStyle = "#fff"; g.lineWidth = 3; g.font = "600 28px -apple-system,system-ui,sans-serif"; g.textAlign = "center"; g.textBaseline = "middle";
-          for(let r = 0; r < rows; r++) for(let c = 0; c < cols; c++){
-            const x = c * tw * k, y = r * th * k, w = tw * k, h = th * k, n = (rows - r - 1) * cols + (cols - c);
-            g.strokeRect(x, y, w, h); g.fillStyle = "#000a"; g.beginPath(); g.arc(x + w / 2, y + h / 2, 24, 0, 7); g.fill(); g.fillStyle = "#fff"; g.fillText(n, x + w / 2, y + h / 2 + 1);
-          }
-          $("#gnote").textContent = `${cols * rows} kotak ${tw}×${th} px · angka = urutan upload (mulai dari 1)`;
+          const L = collageLayout(720); cv.width = L.W; cv.height = L.H; drawCollage(g, L);
+          $("#gnote").textContent = `${items.length} item · hasil 1080×${Math.round(1080 / R(val("ratio")))} px${hasVideo() ? " · video" : ""}`;
+          return;
         }
+        const d = splitDims(), k = 720 / d.W; cv.width = 720; cv.height = Math.round(d.H * k);
+        drawCover(g, sel(), 0, 0, cv.width, cv.height);
+        g.strokeStyle = "#fff"; g.lineWidth = 2; g.textAlign = "center"; g.textBaseline = "middle";
+        const fs = Math.max(14, Math.min(28, 720 / d.cols / 6)); g.font = `600 ${fs}px -apple-system,system-ui,sans-serif`;
+        for(let r = 0; r < d.rows; r++) for(let c = 0; c < d.cols; c++){
+          const x = c * d.tw * k, y = r * d.th * k, w = d.tw * k, h = d.th * k, n = (d.rows - r - 1) * d.cols + (d.cols - c);
+          g.strokeRect(x, y, w, h); g.fillStyle = "#000a"; g.beginPath(); g.arc(x + w / 2, y + h / 2, fs * .9, 0, 7); g.fill(); g.fillStyle = "#fff"; g.fillText(n, x + w / 2, y + h / 2 + 1);
+        }
+        const it = sel();
+        $("#gnote").textContent = `${d.cols * d.rows} kotak ${d.tw}×${d.th}${it.kind === "vid" ? ` · video ${Math.round(Math.min(it.dur, 60))} dtk` : ""} · angka = urutan upload`;
       }
       function list(){
         const box = $("#glist");
-        if(mode !== "collage" || !imgs.length){ box.innerHTML = ""; return; }
-        box.innerHTML = `<div class="hdr">${imgs.length} foto · atur urutan</div><div class="group">${imgs.map((o, i) => `<div class="cell"><img class="tn" src="${o.url}" alt="">
-          <div class="grow"><div class="name">${esc(o.name)}</div></div>
-          <button class="mini" data-up="${i}" type="button" aria-label="Naik">↑</button><button class="mini" data-dn="${i}" type="button" aria-label="Turun">↓</button><button class="mini red" data-rm="${i}" type="button" aria-label="Hapus">✕</button></div>`).join("")}</div>`;
-        box.onclick = e => { const b = e.target.closest("button"); if(!b) return; const i = +(b.dataset.up ?? b.dataset.dn ?? b.dataset.rm);
-          if(b.dataset.rm !== undefined) imgs.splice(i, 1); else { const j = b.dataset.up !== undefined ? i - 1 : i + 1; if(j < 0 || j >= imgs.length) return; [imgs[i], imgs[j]] = [imgs[j], imgs[i]]; }
+        if(!items.length){ box.innerHTML = ""; return; }
+        box.innerHTML = `<div class="hdr">${items.length} item${mode === "collage" ? " · atur urutan" : ""}</div><div class="group">${items.map((o, i) => `<div class="cell">
+          ${o.kind === "img" ? `<img class="tn" src="${o.url}" alt="" style="transform:rotate(${o.rot}deg)">` : `<div class="tn">VID</div>`}
+          <div class="grow"><div class="name">${esc(o.name)}</div><small>${o.kind === "vid" ? Math.round(o.dur) + " dtk" : o.w + "×" + o.h}${o.rot ? " · diputar " + o.rot + "°" : ""}</small></div>
+          <button class="mini" data-rot="${i}" type="button" aria-label="Putar">↻</button>
+          ${mode === "collage" ? `<button class="mini" data-up="${i}" type="button" aria-label="Naik">↑</button><button class="mini" data-dn="${i}" type="button" aria-label="Turun">↓</button>` : ""}
+          <button class="mini red" data-rm="${i}" type="button" aria-label="Hapus">✕</button></div>`).join("")}</div>`;
+        box.onclick = e => { const b = e.target.closest("button"); if(!b || busy) return;
+          const i = +(b.dataset.rot ?? b.dataset.up ?? b.dataset.dn ?? b.dataset.rm);
+          if(b.dataset.rot !== undefined) items[i].rot = (items[i].rot + 90) % 360;
+          else if(b.dataset.rm !== undefined) items.splice(i, 1);
+          else { const j = b.dataset.up !== undefined ? i - 1 : i + 1; if(j < 0 || j >= items.length) return; [items[i], items[j]] = [items[j], items[i]]; }
           list(); draw(); };
       }
-      bindSegs(root, () => {
-        const m = val("gmode");
-        if(m !== mode){ mode = m; if(mode === "split") imgs = imgs.slice(0, 1);
-          $("#gcol").classList.toggle("hide", mode !== "collage"); $("#gsplit").classList.toggle("hide", mode !== "split");
-          $("#ghdr").textContent = mode === "collage" ? "Foto (2–9)" : "Foto";
-          $("#ghint").textContent = mode === "collage" ? "Bisa pilih banyak sekaligus" : "1 foto, sebaiknya resolusi tinggi";
-          $("#gfile").multiple = mode === "collage"; $("#gsave").textContent = mode === "collage" ? "Buat Kolase" : "Pecah Jadi Grid";
-          results.length = 0; $("#out").innerHTML = ""; hideToast($("#msg")); list(); }
-        draw();
-      });
-      root.querySelectorAll('input[type=range]').forEach(r => r.oninput = () => { r.nextElementSibling.textContent = r.value; draw(); });
+      function setMode(m){
+        mode = m; if(mode === "split") items = items.slice(0, 1);
+        $("#gcol").classList.toggle("hide", mode !== "collage"); $("#gsplit").classList.toggle("hide", mode !== "split");
+        $("#ghint").textContent = mode === "collage" ? "Bisa pilih banyak sekaligus (maks 16), foto dan video boleh dicampur" : "1 foto atau video, sebaiknya resolusi tinggi";
+        $("#gfile").multiple = mode === "collage";
+        results.length = 0; $("#out").innerHTML = ""; hideToast($("#msg")); list(); draw();
+      }
+      bindSegs(root, () => { const m = val("gmode"); if(m !== mode) setMode(m); else draw(); });
+      $("#gpre").onclick = e => { const b = e.target.closest("[data-c]"); if(!b) return;
+        for(const [n, v] of [["gcols", b.dataset.c], ["grows", b.dataset.r]]) root.querySelectorAll(`[data-seg="${n}"] button`).forEach(x => x.classList.toggle("on", x.dataset.v === v));
+        draw(); };
+      root.querySelectorAll('#gcol input[type=range]').forEach(r => r.oninput = () => { r.nextElementSibling.textContent = r.value; draw(); });
+      $("#gzoom").oninput = e => { e.target.nextElementSibling.textContent = e.target.value + "%"; if(sel()){ sel().zoom = e.target.value / 100; draw(); } };
+      $("#grot").onclick = () => { if(sel()){ sel().rot = (sel().rot + 90) % 360; list(); draw(); } };
+      $("#greset").onclick = () => { if(sel()){ Object.assign(sel(), {px:.5, py:.5, zoom:1}); $("#gzoom").value = 100; $("#gzoom").nextElementSibling.textContent = "100%"; draw(); } };
       root.querySelectorAll("[data-bg]").forEach(d => d.onclick = () => { bg = d.dataset.bg; root.querySelectorAll("[data-bg]").forEach(x => x.classList.toggle("on", x === d)); draw(); });
+      // geser posisi potongan dengan jari
+      let drag = null;
+      cv.onpointerdown = e => { if(mode !== "split" || !sel()) return; drag = {x:e.clientX, y:e.clientY, px:sel().px, py:sel().py}; cv.setPointerCapture(e.pointerId); };
+      cv.onpointermove = e => {
+        if(!drag) return; const it = sel(), rc = cv.getBoundingClientRect(), r = it.rot, dW = r % 180 ? it.h : it.w, dH = r % 180 ? it.w : it.h;
+        const s = Math.max(rc.width / dW, rc.height / dH) * it.zoom, exX = dW * s - rc.width, exY = dH * s - rc.height;
+        if(exX > 1) it.px = Math.max(0, Math.min(1, drag.px - (e.clientX - drag.x) / exX));
+        if(exY > 1) it.py = Math.max(0, Math.min(1, drag.py - (e.clientY - drag.y) / exY));
+        draw();
+      };
+      cv.onpointerup = cv.onpointercancel = () => drag = null;
+
       $("#gfile").onchange = async e => {
         const fs = [...e.target.files]; e.target.value = "";
-        for(const f of fs){ try { imgs.push({im:await decode(f), name:f.name, url:URL.createObjectURL(f)}); } catch { toast($("#msg"), "err", f.name + " tidak bisa dibaca."); } }
-        if(mode === "split") imgs = imgs.slice(-1);
-        if(imgs.length > 9){ imgs = imgs.slice(0, 9); toast($("#msg"), "err", "Maksimal 9 foto untuk kolase."); }
+        for(const f of fs){
+          try { items.push(await load(f)); }
+          catch(err){ toast($("#msg"), "err", f.name + ": " + (err.message || "tidak bisa dibaca.")); }
+        }
+        if(mode === "split") items = items.slice(-1);
+        if(items.length > 16){ items = items.slice(0, 16); toast($("#msg"), "err", "Maksimal 16 item untuk kolase."); }
         list(); draw();
       };
+
+      // rekam kanvas jadi video (real-time)
+      async function record(c, paint, dur, vids, audioVid, onProg){
+        if(!VMIME || !c.captureStream) throw new Error("Browser ini belum bisa membuat video. Update iOS ke versi terbaru.");
+        const stream = c.captureStream(30); let actx = null;
+        if(audioVid){
+          try { actx = new (window.AudioContext || window.webkitAudioContext)(); const src = actx.createMediaElementSource(audioVid), dst = actx.createMediaStreamDestination();
+            src.connect(dst); dst.stream.getAudioTracks().forEach(t => stream.addTrack(t)); audioVid.muted = false; } catch {}
+        }
+        const rec = new MediaRecorder(stream, {mimeType:VMIME, videoBitsPerSecond:6e6}), chunks = [];
+        rec.ondataavailable = e => e.data && e.data.size && chunks.push(e.data);
+        for(const v of vids){ v.loop = true; v.currentTime = 0; }
+        await Promise.all(vids.map(v => v.play().catch(() => {})));
+        rec.start(500); const t0 = performance.now();
+        await new Promise(done => { const tick = () => { paint(); const t = (performance.now() - t0) / 1000; onProg(Math.min(1, t / dur)); if(t >= dur) return done(); requestAnimationFrame(tick); }; tick(); });
+        const stopped = new Promise(r => rec.onstop = r); rec.stop(); await stopped;
+        vids.forEach(v => { v.pause(); v.loop = false; }); if(actx) try { actx.close(); } catch {}
+        return new Blob(chunks, {type:VMIME.split(";")[0]});
+      }
       const toBlob = c => new Promise(r => c.toBlob(r, "image/jpeg", .92));
       $("#gsave").onclick = async () => {
-        const m = $("#msg"); results.length = 0; $("#out").innerHTML = "";
-        toast(m, "info", "Membuat…");
-        if(mode === "collage"){ addResult(await toBlob(collage(1080)), "SatSet_kolase.jpg"); return toast(m, "ok", "Kolase siap. Ketuk Simpan."); }
-        const {cols, rows, tw, th} = splitDims(), src = splitSource();
-        for(let n = 1; n <= cols * rows; n++){
-          const idx = cols * rows - n, r = Math.floor(idx / cols), c = idx % cols;
-          const t = document.createElement("canvas"); t.width = tw; t.height = th;
-          t.getContext("2d").drawImage(src, c * tw, r * th, tw, th, 0, 0, tw, th);
-          addResult(await toBlob(t), `SatSet_grid_${String(n).padStart(2, "0")}.jpg`);
-        }
-        toast(m, "ok", `${cols * rows} foto siap. Upload ke Instagram mulai dari nomor 01, satu per satu.`);
+        const m = $("#msg"); if(busy) return; busy = true; $("#gsave").disabled = true;
+        results.length = 0; $("#out").innerHTML = ""; prog($("#bar"), 0);
+        try {
+          if(mode === "collage"){
+            if(!hasVideo()){ const L = collageLayout(1080), c = document.createElement("canvas"); c.width = L.W; c.height = L.H; drawCollage(c.getContext("2d"), L);
+              addResult(await toBlob(c), "SatSet_kolase.jpg"); toast(m, "ok", "Kolase siap. Ketuk Simpan."); return; }
+            // kolase video: elemen video baru supaya suara bisa diambil
+            const fresh = await Promise.all(items.map(async it => it.kind === "vid" ? {...it, el:await makeVideo(it.url)} : it));
+            const keep = items; items = fresh;
+            const vids = fresh.filter(it => it.kind === "vid").map(it => it.el), dur = Math.min(60, Math.max(...fresh.filter(it => it.kind === "vid").map(it => it.dur || 1)));
+            const L = collageLayout(1080), c = document.createElement("canvas"); c.width = L.W; c.height = L.H; const x = c.getContext("2d");
+            toast(m, "info", `Merekam kolase video (${Math.round(dur)} dtk)… biarkan layar menyala.`);
+            try {
+              const blob = await record(c, () => drawCollage(x, L), dur, vids, val("gsnd") === "1" ? vids[0] : null, p => prog($("#bar"), Math.round(p * 100)));
+              addResult(blob, "SatSet_kolase." + VEXT); toast(m, "ok", "Kolase video siap. Ketuk Simpan → Simpan Video.");
+            } finally { items = keep; }
+            return;
+          }
+          const it = sel(), d = splitDims(it.kind === "vid" ? 2 / 3 : 1), total = d.cols * d.rows;
+          if(it.kind === "img"){
+            const c = document.createElement("canvas"); c.width = d.W; c.height = d.H; drawCover(c.getContext("2d"), it, 0, 0, d.W, d.H);
+            for(let n = 1; n <= total; n++){
+              const idx = total - n, r = Math.floor(idx / d.cols), cc = idx % d.cols, t = document.createElement("canvas"); t.width = d.tw; t.height = d.th;
+              t.getContext("2d").drawImage(c, cc * d.tw, r * d.th, d.tw, d.th, 0, 0, d.tw, d.th);
+              addResult(await toBlob(t), `SatSet_grid_${String(n).padStart(2, "0")}.jpg`); prog($("#bar"), Math.round(n / total * 100));
+            }
+            toast(m, "ok", `${total} foto siap. Upload ke Instagram mulai dari nomor 01.`); return;
+          }
+          // video: rekam tiap kotak bergantian (lebih ringan untuk HP)
+          const dur = Math.min(60, it.dur || 1), v = await makeVideo(it.url), src = {...it, el:v};
+          for(let n = 1; n <= total; n++){
+            const idx = total - n, r = Math.floor(idx / d.cols), cc = idx % d.cols, t = document.createElement("canvas"); t.width = d.tw; t.height = d.th; const tx = t.getContext("2d");
+            toast(m, "info", `Merekam kotak ${n} dari ${total} (${Math.round(dur)} dtk per kotak)… biarkan layar menyala.`);
+            const blob = await record(t, () => drawCover(tx, src, -cc * d.tw, -r * d.th, d.W, d.H), dur, [v], null, p => prog($("#bar"), Math.round(((n - 1) + p) / total * 100)));
+            addResult(blob, `SatSet_grid_${String(n).padStart(2, "0")}.${VEXT}`);
+          }
+          toast(m, "ok", `${total} video siap. Upload ke Instagram mulai dari nomor 01.`);
+        } catch(e){ toast(m, "err", netErr(e)); }
+        finally { busy = false; prog($("#bar"), null); draw(); }
       };
-      draw();
+      setMode("split");
     }
   },
 
