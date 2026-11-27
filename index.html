@@ -169,10 +169,44 @@ textarea{width:100%;border:0;background:none;outline:none;font-size:17px;padding
 .hide{display:none!important}
 .view{animation:push .18s ease-out}
 @keyframes push{from{opacity:.55}to{opacity:1}}
+/* ---------- animasi pembuka */
+#splash{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:var(--bg);
+  padding-bottom:6vh;transition:opacity .7s ease,transform .8s cubic-bezier(.2,.8,.2,1);-webkit-user-select:none;user-select:none}
+#splash.out{opacity:0;transform:scale(1.06);pointer-events:none}
+#splash .mark{width:112px;height:112px;filter:drop-shadow(0 14px 30px rgba(0,122,255,.35));animation:sp-pop 1.1s cubic-bezier(.2,1.25,.35,1) both}
+#splash .mark rect{fill:var(--blue)}
+#splash .bolt{fill:#fff;stroke:#fff;stroke-width:3;stroke-linejoin:round;stroke-dasharray:260;stroke-dashoffset:260;fill-opacity:0;
+  animation:sp-draw .9s .55s ease-in-out forwards,sp-fill .5s 1.25s ease-out forwards}
+#splash .shine{animation:sp-shine 1.2s 1.5s ease-in-out both}
+#splash .word{display:flex;font:800 40px/1 -apple-system,"SF Pro Display",system-ui,sans-serif;letter-spacing:-.02em;color:var(--ink);overflow:hidden;padding:4px 2px}
+#splash .word span{display:inline-block;animation:sp-up .75s cubic-bezier(.2,.9,.3,1) both}
+#splash .word span:nth-child(4),#splash .word span:nth-child(5),#splash .word span:nth-child(6){color:var(--blue)}
+#splash .tag{font:500 15px -apple-system,system-ui,sans-serif;color:var(--sub);animation:sp-fade .7s 1.75s ease both;margin-top:-8px}
+#splash .dots{position:absolute;bottom:calc(env(safe-area-inset-bottom) + 48px);display:flex;gap:6px;animation:sp-fade .5s 1.9s both}
+#splash .dots i{width:6px;height:6px;border-radius:50%;background:var(--sub);opacity:.35;animation:sp-dot 1s infinite}
+#splash .dots i:nth-child(2){animation-delay:.15s}#splash .dots i:nth-child(3){animation-delay:.3s}
+body.intro #main,body.intro .tabbar{opacity:0;transform:scale(.97)}
+body.reveal #main,body.reveal .tabbar{opacity:1;transform:none;transition:opacity .7s ease .15s,transform .8s cubic-bezier(.2,.8,.2,1) .1s}
+@keyframes sp-pop{0%{opacity:0;transform:scale(.4) rotate(-12deg)}60%{opacity:1}100%{transform:none}}
+@keyframes sp-draw{to{stroke-dashoffset:0}}
+@keyframes sp-fill{to{fill-opacity:1}}
+@keyframes sp-shine{from{transform:translateX(-140px) skewX(-20deg)}to{transform:translateX(160px) skewX(-20deg)}}
+@keyframes sp-up{from{opacity:0;transform:translateY(110%)}to{opacity:1;transform:none}}
+@keyframes sp-fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes sp-dot{0%,100%{opacity:.25;transform:scale(.8)}50%{opacity:.9;transform:scale(1)}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+@media (prefers-reduced-motion:reduce){#splash .bolt{fill-opacity:1;stroke-dashoffset:0}}
 </style>
 </head>
-<body>
+<body class="intro">
+<div id="splash" aria-hidden="true">
+  <svg class="mark" viewBox="0 0 100 100"><defs><clipPath id="spc"><rect width="100" height="100" rx="23"/></clipPath></defs>
+    <rect width="100" height="100" rx="23"/><path class="bolt" pathLength="260" d="M74 16H38L24 52h30L26 84h36l14-34H46z"/>
+    <g clip-path="url(#spc)"><rect class="shine" x="0" y="-20" width="26" height="140" fill="#fff" opacity=".28"/></g></svg>
+  <div class="word"><span style="animation-delay:1.00s">S</span><span style="animation-delay:1.09s">a</span><span style="animation-delay:1.18s">t</span><span style="animation-delay:1.27s">S</span><span style="animation-delay:1.36s">e</span><span style="animation-delay:1.45s">t</span></div>
+  <div class="tag">Semua urusan file, sat-set.</div>
+  <div class="dots"><i></i><i></i><i></i></div>
+</div>
 <div class="nav" id="nav">
   <button class="back hide" id="back" type="button"><svg viewBox="0 0 13 21"><path d="M11 2 3 10.5 11 19" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="backTxt">Kembali</span></button>
   <div class="t" id="navT">SatSet</div><span></span>
@@ -192,6 +226,16 @@ const extOf = n => (n.match(/\.([^.]+)$/) || [, ""])[1].toLowerCase();
 const stem = n => n.replace(/\.[^.]+$/, "").replace(/[^\w\-]+/g, "_").slice(0, 80) || "file";
 const store = { get(k, d){ try { return JSON.parse(localStorage.getItem("alldl_" + k)) ?? d } catch { return d } },
                 set(k, v){ try { localStorage.setItem("alldl_" + k, JSON.stringify(v)) } catch {} } };
+// ---------- animasi pembuka: ±3 dtk, ketuk untuk lewati
+(() => {
+  const sp = document.getElementById("splash"); if(!sp) return;
+  let done = false;
+  const go = () => { if(done) return; done = true; sp.classList.add("out"); document.body.classList.add("reveal");
+    setTimeout(() => { sp.remove(); document.body.classList.remove("intro", "reveal"); }, 950); };
+  const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(go, reduce ? 400 : 3000);
+  sp.addEventListener("pointerdown", go);
+})();
 // ---------- tema: Otomatis / Terang / Gelap
 const THEMES = {auto:["Otomatis","M12 3v18M12 3a9 9 0 1 0 0 18"], light:["Terang","M12 4V2M12 22v-2M4 12H2M22 12h-2M5.6 5.6 4.2 4.2M19.8 19.8l-1.4-1.4M5.6 18.4l-1.4 1.4M19.8 4.2l-1.4 1.4M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z"], dark:["Gelap","M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"]};
 let theme = store.get("theme", "auto"); if(!THEMES[theme]) theme = "auto";
